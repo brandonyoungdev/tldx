@@ -11,10 +11,10 @@ import (
 
 func init() {
 	rootCmd.AddCommand(permutateCmd)
-	permutateCmd.PersistentFlags().String("max-domain-length", "32", "Maximum length of domain name")
-	permutateCmd.PersistentFlags().StringSlice("suffixes", []string{""}, "List of suffixes to append to the keyword")
-	permutateCmd.PersistentFlags().StringSlice("prefixes", []string{""}, "List of prefixes to prepend to the keyword")
-	permutateCmd.PersistentFlags().StringSlice("tlds", []string{"com"}, "List of top-level domains")
+	permutateCmd.PersistentFlags().StringP("max-domain-length", "m", "32", "Maximum length of domain name")
+	permutateCmd.PersistentFlags().StringSliceP("suffixes", "s", []string{""}, "List of suffixes to append to the keyword")
+	permutateCmd.PersistentFlags().StringSliceP("prefixes", "p", []string{""}, "List of prefixes to prepend to the keyword")
+	permutateCmd.PersistentFlags().StringSliceP("tlds", "t", []string{"com"}, "List of top-level domains")
 }
 
 var permutateCmd = &cobra.Command{
@@ -22,7 +22,7 @@ var permutateCmd = &cobra.Command{
 	Aliases: []string{"perm", "p"},
 	Short:   "Permutate keywords for domain availability",
 	Args:    cobra.MinimumNArgs(1),
-  Example: `domitool permutate google facebook twitter --max-domain-length 20 --suffixes app,web --prefixes get,buy --tlds com,net`,
+	Example: `domitool permutate google facebook twitter --max-domain-length 20 --suffixes app,web --prefixes get,buy --tlds com,net`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		maxDomainLengthString, err := cmd.Flags().GetString("max-domain-length")
