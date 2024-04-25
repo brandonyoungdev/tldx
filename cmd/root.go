@@ -16,8 +16,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-    slog.Error(fmt.Sprintf("Error: %s", err))
+		slog.Error(fmt.Sprintf("Error: %s", err))
 		os.Exit(1)
 	}
 }
-

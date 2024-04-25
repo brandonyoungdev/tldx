@@ -1,11 +1,9 @@
 package main
 
-
 import (
-  "github.com/brandutchmen/domitool/cmd"
-) 
-
+	"github.com/brandutchmen/domitool/cmd"
+)
 
 func main() {
-  cmd.Execute()
+	cmd.Execute()
 }

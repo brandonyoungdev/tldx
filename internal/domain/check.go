@@ -51,8 +51,8 @@ func RetryCheckAvailability(domain string, retries int, delay time.Duration) (bo
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error checking domain: %s. Retrying... %s", domain, err))
 			previousError = err
-      // wait a small amount of time to prevent rate limiting based on which retry we are on
-      time.Sleep(time.Duration(delay.Seconds() * float64(i)))
+			// wait a small amount of time to prevent rate limiting based on which retry we are on
+			time.Sleep(time.Duration(delay.Seconds() * float64(i)))
 			continue
 		}
 		return available, nil
@@ -64,15 +64,15 @@ func RetryCheckAvailability(domain string, retries int, delay time.Duration) (bo
 }
 
 func CheckDomains(domains []string) (map[string]bool, map[string]error) {
-  validatedDomains := []string{}
-  for _, domain := range domains {
+	validatedDomains := []string{}
+	for _, domain := range domains {
 
-    // validate that the domain is a proper domain.
-    if isValidDomain(domain) && strings.Contains(domain, "."){
-      validatedDomains = append(validatedDomains, domain)
-    }
-  }
-  domains = validatedDomains
+		// validate that the domain is a proper domain.
+		if isValidDomain(domain) && strings.Contains(domain, ".") {
+			validatedDomains = append(validatedDomains, domain)
+		}
+	}
+	domains = validatedDomains
 
 	// remove duplicates from domains
 	domains = removeDuplicates(domains)
