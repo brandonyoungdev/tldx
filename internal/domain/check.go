@@ -134,10 +134,9 @@ func removeDuplicates(strs []string) []string {
 }
 
 func CheckAndPrint(domains []string) {
-
 	results, errs := CheckDomains(domains)
 	for erroredDomain, err := range errs {
-		Errored(erroredDomain, err)
+		fmt.Println(Errored(erroredDomain, err))
 	}
 
 	for result, available := range results {
@@ -147,6 +146,12 @@ func CheckAndPrint(domains []string) {
 			fmt.Println(NotAvailable(result))
 		}
 	}
+}
+
+
+func CheckAndList(domains []string) {
+	results, errs := CheckDomains(domains)
+  RunList(results, errs)
 }
 
 func isValidDomain(domain string) bool {

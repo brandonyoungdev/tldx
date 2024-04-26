@@ -67,7 +67,16 @@ var permutateCmd = &cobra.Command{
 				}
 			}
 		}
-
-		domain.CheckAndPrint(domains)
+  
+    // get raw flag from rootCmd
+    raw, err := rootCmd.Flags().GetBool("raw")
+    if err != nil {
+      slog.Error(fmt.Sprintf("Error getting raw flag: %s", err))
+    }
+    if raw {
+      domain.CheckAndPrint(domains)
+    } else {
+      domain.CheckAndList(domains)
+    }
 	},
 }

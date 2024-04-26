@@ -20,3 +20,7 @@ func Execute() {
 		os.Exit(1)
 	}
 }
+
+func init() {
+	rootCmd.PersistentFlags().BoolP("raw", "r", false, "Raw output to stdout") 
+}
