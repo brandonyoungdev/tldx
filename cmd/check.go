@@ -22,15 +22,15 @@ Check the availability of domain or multiple domains
   `,
 	Example: `domitool check google.com facebook.com twitter.com`,
 	Args:    cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		raw, err := rootCmd.Flags().GetBool("raw")
+	Run: func(_ *cobra.Command, args []string) {
+		gui, err := rootCmd.Flags().GetBool("gui")
 		if err != nil {
-			slog.Error(fmt.Sprintf("Error getting raw flag: %s", err))
+			slog.Error(fmt.Sprintf("Error getting gui flag: %s", err))
 		}
-		if raw {
-			domain.CheckAndPrint(args)
-		} else {
+		if gui {
 			domain.CheckAndList(args)
+		} else {
+			domain.CheckAndPrint(args)
 		}
 	},
 }

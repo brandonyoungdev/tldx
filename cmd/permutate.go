@@ -68,15 +68,14 @@ var permutateCmd = &cobra.Command{
 			}
 		}
   
-    // get raw flag from rootCmd
-    raw, err := rootCmd.Flags().GetBool("raw")
-    if err != nil {
-      slog.Error(fmt.Sprintf("Error getting raw flag: %s", err))
-    }
-    if raw {
-      domain.CheckAndPrint(domains)
-    } else {
-      domain.CheckAndList(domains)
-    }
+		gui, err := rootCmd.Flags().GetBool("gui")
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error getting gui flag: %s", err))
+		}
+		if gui {
+			domain.CheckAndList(domains)
+		} else {
+			domain.CheckAndPrint(domains)
+		}
 	},
 }
