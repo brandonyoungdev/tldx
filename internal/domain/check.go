@@ -148,10 +148,9 @@ func CheckAndPrint(domains []string) {
 	}
 }
 
-
 func CheckAndList(domains []string) {
 	results, errs := CheckDomains(domains)
-  RunList(results, errs)
+	RunList(results, errs)
 }
 
 func isValidDomain(domain string) bool {
