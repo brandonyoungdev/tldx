@@ -31,26 +31,26 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 				if previousItem == nil {
 					return m.NewStatusMessage(statusMessageStyle("Nothing to undo"))
 				}
-        cmd := m.InsertItem(previousIndex, previousItem)
-        previousItemTitle := previousItem.title
-				previousIndex = 0 
+				cmd := m.InsertItem(previousIndex, previousItem)
+				previousItemTitle := previousItem.title
+				previousIndex = 0
 				previousItem = nil
-        return tea.Batch(cmd, m.NewStatusMessage(statusMessageStyle("Restored " + previousItemTitle)))
+				return tea.Batch(cmd, m.NewStatusMessage(statusMessageStyle("Restored "+previousItemTitle)))
 
 			case key.Matches(msg, keys.remove):
-        if len(m.Items()) == 0 {
-          return m.NewStatusMessage(statusMessageStyle("Nothing to delete"))
-        }
-				previousIndex = m.Index() 
+				if len(m.Items()) == 0 {
+					return m.NewStatusMessage(statusMessageStyle("Nothing to delete"))
+				}
+				previousIndex = m.Index()
 				i := m.SelectedItem()
-        if it, ok := i.(item); ok {
-          previousItem = &item{
-            title: it.title,
-            status: it.status,
-            desc: it.desc,
-          }
-          m.RemoveItem(previousIndex)
-        }
+				if it, ok := i.(item); ok {
+					previousItem = &item{
+						title:  it.title,
+						status: it.status,
+						desc:   it.desc,
+					}
+					m.RemoveItem(previousIndex)
+				}
 				return m.NewStatusMessage(statusMessageStyle("Deleted " + title))
 			}
 		}
