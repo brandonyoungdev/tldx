@@ -22,5 +22,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolP("gui", "u", false, "Gui instead of raw output stdout") 
+	rootCmd.PersistentFlags().BoolP("gui", "u", false, "Gui instead of raw output stdout")
 }

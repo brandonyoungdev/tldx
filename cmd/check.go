@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/spf13/cobra"
-
 	"github.com/brandutchmen/domitool/internal/domain"
+	"github.com/spf13/cobra"
 )
 
 func init() {

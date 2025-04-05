@@ -164,12 +164,12 @@ func RunList(domains map[string]bool, errs map[string]error) {
 			listKeys.toggleHelpMenu,
 		}
 	}
-  ls.AdditionalShortHelpKeys = func() []key.Binding {
-    return []key.Binding{
-      listKeys.exportList,
-    }
-  }
-        
+	ls.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			listKeys.exportList,
+		}
+	}
+
 	m := model{
 		list:         ls,
 		keys:         listKeys,
@@ -184,20 +184,20 @@ func RunList(domains map[string]bool, errs map[string]error) {
 		os.Exit(1)
 	}
 
-  var remainingDomains []list.Item
-  if runtimeModel.(model).quitting {
-    remainingDomains = m.list.Items()
-  }
+	var remainingDomains []list.Item
+	if runtimeModel.(model).quitting {
+		remainingDomains = m.list.Items()
+	}
 	for _, do := range remainingDomains {
 		if i, ok := do.(item); ok {
 			if i.status == STATUS_AVAILABLE {
-        fmt.Println(Available(i.title))
+				fmt.Println(Available(i.title))
 			}
 			if i.status == STATUS_UNAVAILABLE {
-        fmt.Println(NotAvailable(i.title))
+				fmt.Println(NotAvailable(i.title))
 			}
 			if i.status == STATUS_ERRORED {
-        fmt.Println(Errored(i.title, fmt.Errorf("Error: Failed to check domain")))
+				fmt.Println(Errored(i.title, fmt.Errorf("Error: Failed to check domain")))
 			}
 		}
 

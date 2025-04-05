@@ -67,7 +67,7 @@ var permutateCmd = &cobra.Command{
 				}
 			}
 		}
-  
+
 		gui, err := rootCmd.Flags().GetBool("gui")
 		if err != nil {
 			slog.Error(fmt.Sprintf("Error getting gui flag: %s", err))
