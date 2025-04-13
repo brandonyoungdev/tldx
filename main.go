@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/brandutchmen/domitool/cmd"
+	"github.com/brandonyoungdev/domitool/cmd"
 )
 
 func main() {

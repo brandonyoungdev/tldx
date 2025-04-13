@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/brandutchmen/domitool/internal/domain"
+	"github.com/brandonyoungdev/domitool/internal/domain"
 	"github.com/spf13/cobra"
 )
 

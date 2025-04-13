@@ -1,4 +1,4 @@
-module github.com/brandutchmen/domitool
+module github.com/brandonyoungdev/domitool
 
 go 1.21.6
 
