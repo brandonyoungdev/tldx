@@ -1,7 +1,7 @@
-Domitool is a CLI tool for researching available domains.
+# Domitool is a CLI tool for researching available domains.
 
-Usage:
-  domitool [command]
+## Usage:
+  ```bash
 
 Available Commands:
   check       Check the availability of a domain
@@ -14,3 +14,5 @@ Flags:
   -h, --help   help for domitool
 
 Use "domitool [command] --help" for more information about a command.
+```
+
