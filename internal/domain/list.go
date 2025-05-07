@@ -46,12 +46,10 @@ func (i item) Domain() string { return i.title }
 func (i item) Title() string {
 	if i.status == STATUS_ERRORED {
 		return "errored: " + i.title
-		//    return erroredDomainStyle.Render(i.title)
 	}
 	//
 	if i.status == STATUS_AVAILABLE {
 		return "✔️ " + i.title
-		// 	return availableDomainStyle.Render(i.title)
 	}
 	//
 	// return unavailableDomainStyle.Render(i.title)
