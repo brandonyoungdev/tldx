@@ -47,12 +47,9 @@ func (i item) Title() string {
 	if i.status == STATUS_ERRORED {
 		return "errored: " + i.title
 	}
-	//
 	if i.status == STATUS_AVAILABLE {
 		return "✔️ " + i.title
 	}
-	//
-	// return unavailableDomainStyle.Render(i.title)
 	return "❌ " + i.title
 }
 func (i item) Description() string { return i.desc }
