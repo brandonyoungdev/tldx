@@ -70,7 +70,7 @@ func TestRemoveDuplicates(t *testing.T) {
 }
 
 func TestValidateKeywords(t *testing.T) {
-	Config = Options{MaxDomainLength: 63}
+	Config = ConfigOptions{MaxDomainLength: 63}
 	input := []string{"google.com", "example", "example.com", "test.org", "google.co.uk"}
 	expected := []string{"google", "example", "test"}
 
