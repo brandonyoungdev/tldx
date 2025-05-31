@@ -1,3 +1,4 @@
+# .github/workflows/version.yml
 name: Version
 
 on:
@@ -9,22 +10,46 @@ jobs:
   version:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # To create tags/releases
+      issues: write # For semantic-release to link issues/PRs in release notes
+      pull-requests: write # For semantic-release to comment on PRs (if configured)
+    # Optional: Define outputs if you wanted to use them directly (not strictly needed for workflow_run method below)
+    # outputs:
+    #   new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+    #   new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+    #   new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # semantic-release needs full history
+          persist-credentials: false # Ensure semantic-release uses its own token
 
       - name: Semantic Release
+        id: semantic # Give it an ID to access outputs if needed later
         uses: cycjimmy/semantic-release-action@v4
+        # Ensure your semantic-release config (.releaserc.json, .releaserc.yml, etc.) is correct
+        # The extra_plugins here are fine, assuming they are what you intend.
+        # Default plugins are usually:
+        # @semantic-release/commit-analyzer
+        # @semantic-release/release-notes-generator
+        # @semantic-release/github
+        # You've added @semantic-release/git, @semantic-release/exec, @semantic-release/changelog
+        # Make sure your .releaserc.json (or equivalent) configures these plugins appropriately.
+        # For example, @semantic-release/git is often used to commit CHANGELOG.md back to the repo.
         with:
           extra_plugins: |
-            @semantic-release/git
-            @semantic-release/exec
+            @semantic-release/commit-analyzer
+            @semantic-release/release-notes-generator
             @semantic-release/changelog
+            @semantic-release/git
+            @semantic-release/github
+            # @semantic-release/exec # Only include if you have a specific exec step in your semantic-release config
         env:
-          GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
-
-  release:
-    runs-on: ubuntu-latest
+          GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # This PAT will be used to create the tag and GitHub Release
+          # If @semantic-release/git is committing files (e.g., CHANGELOG.md):
+          # GIT_AUTHOR_NAME: "semantic-release-bot"
+          # GIT_AUTHOR_EMAIL: "semantic-release-bot@users.noreply.github.com"
+          # GIT_COMMITTER_NAME: "semantic-release-bot"
+          # GIT_COMMITTER_EMAIL: "semantic-release-bot@users.noreply.github.com"

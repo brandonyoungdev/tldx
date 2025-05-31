@@ -1,29 +1,79 @@
+# .github/workflows/release.yml
 name: Release
 
 on:
-  push:
-    tags:
-      - "*"
-  workflow_call:
+  workflow_run:
+    workflows: ["Version"] # Important: Must match the 'name:' field of the Version workflow
+    types:
+      - completed
+
+permissions:
+  contents: write # For GoReleaser to upload assets to the release
 
 jobs:
-  release:
+  goreleaser: # Renamed job for clarity
+    name: Run GoReleaser
     runs-on: ubuntu-latest
+    # Only run if the 'Version' workflow (which triggered this run) was successful
+    if: github.event.workflow_run.conclusion == 'success'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: "Checkout code at the commit processed by Version workflow"
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          # github.event.workflow_run.head_sha is the SHA of the commit
+          # that triggered the 'Version' workflow on the 'main' branch.
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0 # GoReleaser often needs full history, and we need it for tag detection
+
+      - name: "Check for new version tag on the commit"
+        id: get_tag
+        run: |
+          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
+          echo "Checking for semantic version tag on commit $COMMIT_SHA (from Version workflow)"
+
+          # Fetch all tags from remote to ensure we have the latest ones locally.
+          # The checkout action might not fetch all tags by default.
+          git fetch --tags --force
+
+          # Try to find a tag matching vX.Y.Z pattern pointing directly to this commit.
+          # `git describe --tags --exact-match` is perfect for this.
+          # It will error if no tag matches, so we redirect stderr and check output.
+          # We also grep to ensure it's a simple vX.Y.Z tag, adjust if you have complex tag patterns like -rc.
+          TAG_NAME=$(git describe --tags --exact-match "$COMMIT_SHA" 2>/dev/null | grep -o '^v[0-9]\+\.[0-9]\+\.[0-9]\+$' || echo "")
+
+          if [ -z "$TAG_NAME" ]; then
+            echo "No new semantic version tag (vX.Y.Z) found on commit $COMMIT_SHA."
+            echo "This likely means semantic-release determined no version bump was needed in the 'Version' workflow."
+            echo "skip_goreleaser=true" >> $GITHUB_OUTPUT
+          else
+            echo "Found tag: $TAG_NAME. Proceeding with GoReleaser."
+            # We don't strictly need to output tag_name for GoReleaser if HEAD is correctly tagged,
+            # but it's good for logging or potential future use.
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "skip_goreleaser=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash # Explicitly use bash for the grep -o behavior
 
       - name: Set up Go
+        if: steps.get_tag.outputs.skip_goreleaser == 'false'
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.24" # Your specified Go version
+          cache: true
 
-      - name: Install GoReleaser
+      - name: Run GoReleaser
+        if: steps.get_tag.outputs.skip_goreleaser == 'false'
         uses: goreleaser/goreleaser-action@v5
         with:
-          version: latest
+          # version: latest # 'latest' is the default, so often not needed
           args: release --clean
         env:
+          # GoReleaser will use this token to upload assets to the GitHub Release
+          # that semantic-release (in the 'Version' workflow) should have already created.
+          # GoReleaser finds the existing release by the tag name.
           GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+          # If you are using GPG signing with GoReleaser:
+          # GPG_FINGERPRINT: ${{ secrets.GPG_FINGERPRINT }}
+          # GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          # GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
