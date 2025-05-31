@@ -1,4 +1,4 @@
-![tldx logo](https://github.com/brandonyoung.dev/tldx/raw/main/assets/tldx-logo.png)
+![tldx logo](https://github.com/brandonyoungdev/tldx/raw/main/assets/tldx-logo.png)
 
 # tldx
 
