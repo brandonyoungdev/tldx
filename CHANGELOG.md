@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/brandonyoungdev/tldx/compare/v0.3.1...v0.4.0) (2025-05-31)
+
+
+### Features
+
+* msg tweak for invalid max-length ([170913f](https://github.com/brandonyoungdev/tldx/commit/170913f8fff28cc03dc396a465768b51cf7dcf2d))
+
 ## [0.3.1](https://github.com/brandonyoungdev/tldx/compare/v0.3.0...v0.3.1) (2025-05-31)
 
 
