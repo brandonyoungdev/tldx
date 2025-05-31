@@ -7,6 +7,7 @@
 ![GitHub](https://img.shields.io/github/license/brandonyoungdev/tldx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/brandonyoungdev/tldx)](https://goreportcard.com/report/github.com/brandonyoungdev/tldx)
 
+
 `tldx` helps you brainstorm available domain names fast.
 
 ```sh
@@ -22,18 +23,6 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 - 📤 Streams results as they're found
 - 📏 Optional filtering by domain length
 - 🧠 Great for technical founders, indie hackers, and naming brainstorms
-
-
-## 📦 Installation
-#### macOS (Homebrew)
-```sh
-brew install brandonyoungdev/tldx/tldx
-```
-or
-```sh
-brew tap brandonyoungdev/tldx
-brew install tldx
-```
 
 
 ## 🛠️ Usage
@@ -58,27 +47,7 @@ Flags:
   -t, --tlds strings            TLDs to check (e.g. com,io,ai)
   -v, --verbose                 Show verbose output
 ```
-#### Linux and Windows (Manual)
-Visit the [Releases page](https://github.com/brandonyoungdev/tldx/releases).
 
-Download the archive for your OS and architecture:
-
-- macOS / Linux: `tldx_<version>_<os>_<arch>.tar.gz`
-
-- Windows: `tldx_<version>_windows_<arch>.zip`
-
-Extract the binary and move it to a directory in your `$PATH`:
-
-```sh
-# Example for Linux/macOS
-tar -xzf tldx_<version>_<os>_<arch>.tar.gz
-mv tldx /usr/local/bin/
-```
-
-#### Go (Install from Source)
-```sh
-go install github.com/brandonyoungdev/tldx@latest
-```
 
 ## 🔗 Examples
 
@@ -110,9 +79,8 @@ This permutates the keywords with the specified prefixes, suffixes, and TLDs, ch
 ```sh
   ✔️  mygooglely.com is available
   ✔️  getgooglely.ai is available
-  ✔️  getgooglehub.io is available
-  ✔️  mygooglehub.io is available
   ❌ mygoogle.ai is not available
+  ...
 ```
 
 ### Show Only Available Domains
@@ -121,23 +89,43 @@ This permutates the keywords with the specified prefixes, suffixes, and TLDs, ch
 
 ```sh
   ✔️  getgooglely.ai is available
-  ✔️  getgooglehub.ai is available
-  ✔️  mygooglely.io is available
   ✔️  getreddithub.com is available
   ✔️  getreddit.ai is available
   ✔️  googlely.ai is available
   ✔️  getredditly.com is available
-  ✔️  getreddithub.io is available
-  ✔️  getredditly.io is available
-  ✔️  getredditly.ai is available
-  ✔️  myredditly.io is available
-  ✔️  myreddithub.io is available
-  ✔️  myreddithub.com is available
-  ✔️  getfacebookhub.com is available
-  ✔️  myfacebookly.com is available
-  ✔️  myfacebookhub.ai is available
-  ✔️  getfacebookly.ai is available
   ✔️  facebookly.io is available
+  ...
 ```
 
+## 📦 Installation
+#### macOS (Homebrew)
+```sh
+brew install brandonyoungdev/tldx/tldx
+```
+or
+```sh
+brew tap brandonyoungdev/tldx
+brew install tldx
+```
 
+#### Linux and Windows (Manual)
+Visit the [Releases page](https://github.com/brandonyoungdev/tldx/releases).
+
+Download the archive for your OS and architecture:
+
+- macOS / Linux: `tldx_<version>_<os>_<arch>.tar.gz`
+
+- Windows: `tldx_<version>_windows_<arch>.zip`
+
+Extract the binary and move it to a directory in your `$PATH`:
+
+```sh
+# Example for Linux/macOS
+tar -xzf tldx_<version>_<os>_<arch>.tar.gz
+mv tldx /usr/local/bin/
+```
+
+#### Go (Install from Source)
+```sh
+go install github.com/brandonyoungdev/tldx@latest
+```
