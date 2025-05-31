@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/brandonyoungdev/tldx/compare/v0.1.0...v0.2.0) (2025-05-31)
+
+
+### Features
+
+* add version command ([44adb2d](https://github.com/brandonyoungdev/tldx/commit/44adb2d2f1c01a0b33f81cafce6da0a7b8e4b606))
+
 # [0.1.0](https://github.com/brandonyoungdev/tldx/compare/v0.0.1...v0.1.0) (2025-05-31)
 
 
