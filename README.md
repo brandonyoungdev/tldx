@@ -19,15 +19,22 @@ Use it to quickly explore domain name ideas for your next product, startup, or s
 ## 🛠️ Usage
 
 ```bash
-tldx [keywords] [flags]
+Usage:
+  tldx [keywords] [flags]
+  tldx [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  version     Print the version
 
 Flags:
   -h, --help                    help for tldx
   -m, --max-domain-length int   Maximum length of domain name (default 64)
-      --only-available          Show only available domains
+  -a, --only-available          Show only available domains
   -p, --prefixes strings        Prefixes to add (e.g. get,my,use)
   -s, --suffixes strings        Suffixes to add (e.g. ify,ly)
-  -t, --tlds strings            TLDs to check (e.g. com,io,dev)
+  -t, --tlds strings            TLDs to check (e.g. com,io,ai)
   -v, --verbose                 Show verbose output
 ```
 
