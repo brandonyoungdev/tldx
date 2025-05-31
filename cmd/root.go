@@ -29,7 +29,7 @@ var rootCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if domain.Config.MaxDomainLength <= 0 {
-			slog.Error("Invalid max-domain-length provided")
+			slog.Error("Invalid max-domain-length provided. Pick a positive number please.")
 			return
 		}
 		domain.Exec(args)
