@@ -41,6 +41,7 @@ jobs:
         run: |
           echo "Running semantic-release..."
           RELEASE_OUTPUT=$(npx semantic-release 2>&1 | tee semantic-output.txt)
+          echo $RELEASE_OUTPUT
 
           # Parse tag from output
           RELEASE_TAG=$(grep -oE 'Published release (v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?)' semantic-output.txt | awk '{print $3}' | tail -n1)
