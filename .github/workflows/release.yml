@@ -2,10 +2,8 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
-    tags:
-      - "v*"
+    branches: [main]
+    tags: ["v*"]
 
 jobs:
   release:
@@ -16,18 +14,17 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies for semantic-release
+      - name: Install semantic-release and plugins
         run: |
           npm init -y
           npm install --save-dev \
@@ -41,24 +38,29 @@ jobs:
 
       - name: Run semantic-release
         id: semantic
-        uses: cycjimmy/semantic-release-action@v4
-        with:
-          extra_plugins: |
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/changelog
-            @semantic-release/github
-            @semantic-release/git
-            conventional-changelog-conventionalcommits
+        run: |
+          echo "Running semantic-release..."
+          RELEASE_OUTPUT=$(npx semantic-release 2>&1 | tee semantic-output.txt)
+
+          # Parse tag from output
+          RELEASE_TAG=$(grep -oE 'Published release (v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?)' semantic-output.txt | awk '{print $3}' | tail -n1)
+
+          if [ -n "$RELEASE_TAG" ]; then
+            echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+            echo "released=true" >> $GITHUB_OUTPUT
+          else
+            echo "released=false" >> $GITHUB_OUTPUT
+          fi
+
         env:
           GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
 
-      - name: Output semantic-release debug info
+      - name: Print release info
         run: |
-          echo "Released: ${{ steps.semantic.outputs.released }}"
-          echo "Tag: ${{ steps.semantic.outputs.next-release-git-tag }}"
+          echo "Released? ${{ steps.semantic.outputs.released }}"
+          echo "Tag: ${{ steps.semantic.outputs.release_tag }}"
 
-      - name: Set up Go
+      - name: Setup Go
         if: steps.semantic.outputs.released == 'true'
         uses: actions/setup-go@v5
         with:
