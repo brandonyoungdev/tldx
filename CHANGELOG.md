@@ -1,3 +1,10 @@
+## [0.4.9](https://github.com/brandonyoungdev/tldx/compare/v0.4.8...v0.4.9) (2025-05-31)
+
+
+### Bug Fixes
+
+* gitignore ([7c8e7e0](https://github.com/brandonyoungdev/tldx/commit/7c8e7e0ec40062c7a68c205a5747ce0fc1826907))
+
 ## [0.4.8](https://github.com/brandonyoungdev/tldx/compare/v0.4.7...v0.4.8) (2025-05-31)
 
 
