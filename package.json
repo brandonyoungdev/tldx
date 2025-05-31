@@ -1,5 +1,15 @@
 {
-  "dependencies": {
+  "name": "tldx",
+  "version": "1.0.0",
+  "description": "`tldx` is a fast, developer-first CLI tool for **researching available domains** across multiple TLDs with intelligent permutations.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
