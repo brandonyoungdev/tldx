@@ -1,7 +1,17 @@
 {
   "branches": ["main"],
   "plugins": [
-    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            { "type": "fix", "release": "patch" },
+            { "type": "feat", "release": "minor" },
+            { "type": "chore", "release": false }
+          ]
+      }
+    ],
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
     "@semantic-release/github",
