@@ -1,0 +1,82 @@
+# .goreleaser.yml
+project_name: tldx
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: tldx
+    main: .
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - "-s -w -X main.version={{.Version}}"
+
+    env:
+      - CGO_ENABLED=0
+
+snapshot:
+  name_template: "next-{{ .ShortCommit }}"
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+
+release:
+  github:
+    owner: brandonyoungdev
+    name: tldx
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+brews:
+  - name: tldx
+
+    description: "tldx is a fast, developer-first CLI tool for researching available domains across multiple TLDs with permutations"
+
+    folder: Formula
+    license: Apache-2.0
+
+    repository:
+      owner: brandonyoungdev
+      name: homebrew-tldx
+      branch: main
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        base:
+          owner: brandonyoungdev
+          name: tldx
+          branch: main
+
+    url_template: "https://github.com/brandonyoungdev/tldx/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+
+    # Git author used to commit to the repository.
+    commit_author:
+      name: goreleaserbot
+      email: goreleaserbot@example.com
+
+    # The project name and current git tag are used in the format string.
+    #
+    # Templates: allowed
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
