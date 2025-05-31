@@ -69,7 +69,7 @@ brews:
           name: tldx
           branch: main
 
-    url_template: "https://github.com/{{ .ReleaseNotesURL }}"
+    url_template: "https://github.com/brandonyoungdev/tldx/releases/tag/{{ .Tag }}"
 
     # Git author used to commit to the repository.
     commit_author:
