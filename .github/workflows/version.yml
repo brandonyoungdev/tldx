@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  release:
+  version:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,3 +25,10 @@ jobs:
             @semantic-release/changelog
         env:
           GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v4
+        with:
+          TAP_GITHUB_TOKEN: ${{secrets.TAP_GITHUB_TOKEN}}

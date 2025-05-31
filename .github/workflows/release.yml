@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - "*"
+  workflow_call:
+    secrets:
+      TAP_GITHUB_TOKEN:
+        required: true
+        description: "GitHub token for releasing the package"
 
 jobs:
   release:
