@@ -11,7 +11,7 @@
 
 Use it to quickly explore domain name ideas for your next product, startup, or side project.
 
----
+
 ## 🧠 TL;DR
 
 `tldx` helps you brainstorm available domain names fast.
@@ -32,7 +32,6 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 - 📏 Optional filtering by domain length
 - 🧠 Great for technical founders, indie hackers, and naming brainstorms
 
----
 
 ## 🛠️ Usage
 
