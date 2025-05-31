@@ -1,0 +1,11 @@
+branches:
+  - main
+
+changelog:
+  sort: asc
+
+tag_format: v{{version}}
+
+github:
+  enabled: true
+  token: $GITHUB_TOKEN
