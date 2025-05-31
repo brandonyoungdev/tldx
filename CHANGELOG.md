@@ -1,3 +1,16 @@
+# [0.3.0](https://github.com/brandonyoungdev/tldx/compare/v0.2.1...v0.3.0) (2025-05-31)
+
+
+### Bug Fixes
+
+* formatting for stats ([577c574](https://github.com/brandonyoungdev/tldx/commit/577c5740e6e0ecc9be076991f5e802ad9275d3ac))
+* test ([2dfac42](https://github.com/brandonyoungdev/tldx/commit/2dfac42afc96e8047ceac92f8a398b4fcc47fae7))
+
+
+### Features
+
+* stats ([436f13c](https://github.com/brandonyoungdev/tldx/commit/436f13c41d6b4bd5bd09eab561e61730bd2f6af1))
+
 # [0.2.0](https://github.com/brandonyoungdev/tldx/compare/v0.1.0...v0.2.0) (2025-05-31)
 
 
