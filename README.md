@@ -33,6 +33,7 @@ Flags:
   -m, --max-domain-length int   Maximum length of domain name (default 64)
   -a, --only-available          Show only available domains
   -p, --prefixes strings        Prefixes to add (e.g. get,my,use)
+      --show-stats              Show statistics
   -s, --suffixes strings        Suffixes to add (e.g. ify,ly)
   -t, --tlds strings            TLDs to check (e.g. com,io,ai)
   -v, --verbose                 Show verbose output
