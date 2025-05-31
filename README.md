@@ -9,7 +9,7 @@
 
 `tldx` is a fast, developer-first CLI tool for **researching available domains** across multiple TLDs with intelligent permutations.
 
-Use it to quickly explore domain name ideas for your next product, startup, or side project — without waiting or guessing.
+Use it to quickly explore domain name ideas for your next product, startup, or side project.
 
 ---
 
