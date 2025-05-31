@@ -1,3 +1,10 @@
+## [0.4.6](https://github.com/brandonyoungdev/tldx/compare/v0.4.5...v0.4.6) (2025-05-31)
+
+
+### Bug Fixes
+
+* change-emoji ([4a41a7d](https://github.com/brandonyoungdev/tldx/commit/4a41a7d426c196364664fda2576a34896772322b))
+
 ## [0.4.5](https://github.com/brandonyoungdev/tldx/compare/v0.4.4...v0.4.5) (2025-05-31)
 
 
