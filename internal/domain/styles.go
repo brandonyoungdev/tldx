@@ -15,7 +15,7 @@ func Available(domain string) string {
 		Render
 
 	// Use the style to format the output
-	return style(fmt.Sprintf("✔️  %s is available", domain))
+	return style(fmt.Sprintf("✅ %s is available", domain))
 }
 
 func NotAvailable(domain string) string {
