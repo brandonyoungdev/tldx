@@ -14,7 +14,7 @@ jobs:
   goreleaser:
     name: Run GoReleaser
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
+    if: ${{ github.event.workflow_run.outputs.new_release_published == 'true' }}
 
     steps:
       - name: "Checkout code at the commit processed by Version workflow"
