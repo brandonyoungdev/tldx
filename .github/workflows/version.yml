@@ -13,11 +13,10 @@ jobs:
       contents: write # To create tags/releases
       issues: write # For semantic-release to link issues/PRs in release notes
       pull-requests: write # For semantic-release to comment on PRs (if configured)
-    # Optional: Define outputs if you wanted to use them directly (not strictly needed for workflow_run method below)
-    # outputs:
-    #   new_release_published: ${{ steps.semantic.outputs.new_release_published }}
-    #   new_release_version: ${{ steps.semantic.outputs.new_release_version }}
-    #   new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
+
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
 
     steps:
       - name: Checkout code
@@ -36,13 +35,15 @@ jobs:
             @semantic-release/git \
             conventional-changelog-conventionalcommits
 
-      - name: Semantic Release
-        run: npx semantic-release
+      - name: Run semantic-release
+        id: semantic
+        run: |
+          npx semantic-release --no-ci --dry-run=false --debug --ci > result.json || true
+          TAG=$(jq -r '.nextRelease.gitTag' result.json 2>/dev/null || echo "")
+          PUBLISHED=$(jq -r '.published' result.json 2>/dev/null || echo "false")
+
+          echo "new_release_git_tag=$TAG" >> $GITHUB_OUTPUT
+          echo "new_release_published=$PUBLISHED" >> $GITHUB_OUTPUT
 
         env:
-          GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # This PAT will be used to create the tag and GitHub Release
-          # If @semantic-release/git is committing files (e.g., CHANGELOG.md):
-          # GIT_AUTHOR_NAME: "semantic-release-bot"
-          # GIT_AUTHOR_EMAIL: "semantic-release-bot@users.noreply.github.com"
-          # GIT_COMMITTER_NAME: "semantic-release-bot"
-          # GIT_COMMITTER_EMAIL: "semantic-release-bot@users.noreply.github.com"
+          GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
