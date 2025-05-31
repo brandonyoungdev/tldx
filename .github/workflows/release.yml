@@ -22,7 +22,7 @@ jobs:
             @semantic-release/exec
             @semantic-release/changelog
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
       - name: Install GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
