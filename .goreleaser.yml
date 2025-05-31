@@ -54,7 +54,7 @@ brews:
 
     description: "tldx is a fast, developer-first CLI tool for researching available domains across multiple TLDs with permutations"
 
-    folder: Formula
+    directory: Formula
     license: Apache-2.0
 
     repository:
