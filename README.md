@@ -7,16 +7,7 @@
 ![GitHub](https://img.shields.io/github/license/brandonyoungdev/tldx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/brandonyoungdev/tldx)](https://goreportcard.com/report/github.com/brandonyoungdev/tldx)
 
-`tldx` is a fast, developer-first CLI tool for **researching available domains** across multiple TLDs with intelligent permutations.
-
-Use it to quickly explore domain name ideas for your next product, startup, or side project.
-
-
-## 🧠 TL;DR
-
 `tldx` helps you brainstorm available domain names fast.
-
-Give it a few keywords and checks permutations across multiple TLDs—concurrently.
 
 ```sh
 tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
