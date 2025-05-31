@@ -1,3 +1,10 @@
+## [0.4.7](https://github.com/brandonyoungdev/tldx/compare/v0.4.6...v0.4.7) (2025-05-31)
+
+
+### Bug Fixes
+
+* logging ([4cab5ec](https://github.com/brandonyoungdev/tldx/commit/4cab5ecca869f2cca5f1f4db0e63567f53ac73a6))
+
 ## [0.4.6](https://github.com/brandonyoungdev/tldx/compare/v0.4.5...v0.4.6) (2025-05-31)
 
 
