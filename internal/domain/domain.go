@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"regexp"
 	"strings"
 	"sync"
@@ -14,13 +15,14 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-type Options struct {
+type ConfigOptions struct {
 	TLDs            []string
 	Prefixes        []string
 	Suffixes        []string
 	MaxDomainLength int
 	Verbose         bool
 	OnlyAvailable   bool
+	ShowStats       bool
 }
 
 type DomainResult struct {
@@ -29,80 +31,133 @@ type DomainResult struct {
 	Error     error  `json:"error,omitempty"`
 }
 
-var Config = Options{}
+type Stats struct {
+	total        int
+	available    int
+	notAvailable int
+	timedOut     int
+	errored      int
+}
+
+const (
+	maxRetries       = 3
+	initialBackoff   = 500 * time.Millisecond
+	backoffFactor    = 5.0
+	jitterFraction   = 0.7 // +/-70% randomness
+	contextTimeout   = 15 * time.Second
+	concurrencyLimit = 20
+)
+
+var Config = ConfigOptions{}
+
+var stats = Stats{}
 
 func Exec(domainsOrKeywords []string) {
 	keywords := validateKeywords(domainsOrKeywords)
 	domains := generateDomainPermutations(keywords)
-	resultChan := checkDomainsStreaming(domains, 20, 15*time.Second)
+	stats.total = len(domains)
+	resultChan := checkDomainsStreaming(domains, concurrencyLimit, contextTimeout)
 
 	for result := range resultChan {
 		if result.Error != nil {
+			stats.errored += 1
 			if Config.Verbose {
 				fmt.Println(Errored(result.Domain, result.Error))
 			}
 			continue
 		}
 		if result.Available {
+			stats.available += 1
 			fmt.Println(Available(result.Domain))
 		} else {
+			stats.notAvailable += 1
 			if Config.OnlyAvailable {
 				continue
 			}
 			fmt.Println(NotAvailable(result.Domain))
 		}
 	}
+	if Config.ShowStats {
+		fmt.Println(RenderStatsSummary())
+	}
 }
 
-// CheckAvailability checks if a domain is available with timeout support.
 func checkAvailability(ctx context.Context, domain string) (bool, error) {
 	if !isValidDomainOrKeyword(domain) {
 		return false, errors.New("Invalid domain")
 	}
 
-	type whoisResult struct {
-		raw string
-		err error
+	var lastErr error
+	backoff := initialBackoff
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		default:
+			time.Sleep(time.Duration(float64(backoff) * (1 + (rand.Float64()*2-1)*jitterFraction)))
+			raw, err := whois.Whois(domain)
+			if err != nil || isTransientWhoisError(err, raw) {
+				lastErr = err
+				if attempt < maxRetries {
+					jitter := time.Duration(float64(backoff) * (1 + (rand.Float64()*2-1)*jitterFraction))
+					time.Sleep(jitter)
+					backoff = time.Duration(float64(backoff) * backoffFactor)
+					continue
+				}
+				stats.timedOut += 1
+				return false, fmt.Errorf("whois error after %d retries: %w", attempt, err)
+			}
+
+			parsed, err := whoisparser.Parse(raw)
+			if err != nil && strings.Contains(err.Error(), "domain is not found") {
+				return true, nil
+			}
+			if parsed.Registrar != nil {
+				return false, nil
+			}
+			return false, err
+		}
 	}
 
-	resultCh := make(chan whoisResult, 1)
-	go func() {
-		raw, err := whois.Whois(domain)
-		resultCh <- whoisResult{raw: raw, err: err}
-	}()
-
-	select {
-	case <-ctx.Done():
-		return false, ctx.Err()
-	case res := <-resultCh:
-		if res.err != nil {
-			return false, res.err
-		}
-
-		parsed, err := whoisparser.Parse(res.raw)
-		if err != nil && strings.Contains(err.Error(), "domain is not found") {
-			return true, nil
-		}
-		if parsed.Registrar != nil {
-			return false, nil
-		}
-		return false, err
-	}
+	return false, fmt.Errorf("unreachable: exhausted retries, last error: %v", lastErr)
 }
 
-// WorkerPool to check domains concurrently with timeouts and streaming output.
+func isTransientWhoisError(err error, raw string) bool {
+	if err == nil && raw == "" {
+		return true // empty response
+	}
+	if err != nil {
+		msg := err.Error()
+		return strings.Contains(msg, "connection reset") ||
+			strings.Contains(msg, "timeout") ||
+			strings.Contains(msg, "EOF") ||
+			strings.Contains(msg, "refused") ||
+			strings.Contains(msg, "too many requests")
+	}
+	return false
+}
+
 func checkDomainsStreaming(domains []string, concurrency int, timeout time.Duration) <-chan DomainResult {
 	resultChan := make(chan DomainResult)
+	inputChan := make(chan string)
 
 	go func() {
-		defer close(resultChan)
-		sem := make(chan struct{}, concurrency)
-		var wg sync.WaitGroup
-
+		defer close(inputChan)
 		for _, domain := range domains {
-			domain := domain // capture loop variable correctly
+			inputChan <- domain
+		}
+	}()
+
+	go func() {
+		var wg sync.WaitGroup
+		sem := make(chan struct{}, concurrency)
+
+		for domain := range inputChan {
+			domain := domain
 			sem <- struct{}{}
 			wg.Add(1)
+			time.Sleep(50 * time.Millisecond) // Throttle requests to avoid rate limiting
 
 			go func() {
 				defer func() {
@@ -123,6 +178,7 @@ func checkDomainsStreaming(domains []string, concurrency int, timeout time.Durat
 		}
 
 		wg.Wait()
+		close(resultChan)
 	}()
 
 	return resultChan

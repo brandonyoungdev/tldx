@@ -18,6 +18,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&domain.Config.Verbose, "verbose", "v", false, "Show verbose output")
 	rootCmd.Flags().BoolVarP(&domain.Config.OnlyAvailable, "only-available", "a", false, "Show only available domains")
 	rootCmd.Flags().IntVarP(&domain.Config.MaxDomainLength, "max-domain-length", "m", 64, "Maximum length of domain name")
+	rootCmd.Flags().BoolVar(&domain.Config.ShowStats, "show-stats", false, "Show statistics")
 
 	rootCmd.AddCommand(versionCmd)
 }
