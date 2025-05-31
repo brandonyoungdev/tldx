@@ -1,4 +1,11 @@
+![tldx logo](https://github.com/brandonyoung.dev/tldx/raw/main/assets/tldx-logo.png)
+
 # tldx
+
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/brandonyoung.dev/tldx)
+![Tests](https://img.shields.io/github/actions/workflow/status/brandonyoung.dev/tldx/test.yml?branch=main)
+![GitHub](https://img.shields.io/github/license/brandonyoung.dev/tldx)
+[![Go Report Card](https://goreportcard.com/badge/github.com/brandonyoung.dev/tldx)](https://goreportcard.com/report/github.com/brandonyoung.dev/tldx)
 
 `tldx` is a fast, developer-first CLI tool for **researching available domains** across multiple TLDs with intelligent permutations.
 
