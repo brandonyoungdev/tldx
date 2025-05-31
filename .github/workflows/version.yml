@@ -26,28 +26,19 @@ jobs:
           fetch-depth: 0 # semantic-release needs full history
           persist-credentials: false # Ensure semantic-release uses its own token
 
-      - name: Install conventional-changelog-conventionalcommits
-        run: npm install -g conventional-changelog-conventionalcommits
+      - name: Install semantic-release and plugins
+        run: |
+          npm install semantic-release \
+            @semantic-release/commit-analyzer \
+            @semantic-release/release-notes-generator \
+            @semantic-release/changelog \
+            @semantic-release/github \
+            @semantic-release/git \
+            conventional-changelog-conventionalcommits
 
       - name: Semantic Release
-        id: semantic # Give it an ID to access outputs if needed later
-        uses: cycjimmy/semantic-release-action@v4
-        # Ensure your semantic-release config (.releaserc.json, .releaserc.yml, etc.) is correct
-        # The extra_plugins here are fine, assuming they are what you intend.
-        # Default plugins are usually:
-        # @semantic-release/commit-analyzer
-        # @semantic-release/release-notes-generator
-        # @semantic-release/github
-        # You've added @semantic-release/git, @semantic-release/exec, @semantic-release/changelog
-        # Make sure your .releaserc.json (or equivalent) configures these plugins appropriately.
-        # For example, @semantic-release/git is often used to commit CHANGELOG.md back to the repo.
-        with:
-          extra_plugins: |
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/changelog
-            @semantic-release/git
-            @semantic-release/github
+        run: npx semantic-release
+
         env:
           GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }} # This PAT will be used to create the tag and GitHub Release
           # If @semantic-release/git is committing files (e.g., CHANGELOG.md):
