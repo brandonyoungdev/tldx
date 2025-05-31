@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"regexp"
 	"strings"
 	"sync"
@@ -20,6 +19,8 @@ type Options struct {
 	Prefixes        []string
 	Suffixes        []string
 	MaxDomainLength int
+	Verbose         bool
+	OnlyAvailable   bool
 }
 
 type DomainResult struct {
@@ -37,12 +38,17 @@ func Exec(domainsOrKeywords []string) {
 
 	for result := range resultChan {
 		if result.Error != nil {
-			fmt.Println(Errored(result.Domain, result.Error))
+			if Config.Verbose {
+				fmt.Println(Errored(result.Domain, result.Error))
+			}
 			continue
 		}
 		if result.Available {
 			fmt.Println(Available(result.Domain))
 		} else {
+			if Config.OnlyAvailable {
+				continue
+			}
 			fmt.Println(NotAvailable(result.Domain))
 		}
 	}
@@ -124,7 +130,20 @@ func checkDomainsStreaming(domains []string, concurrency int, timeout time.Durat
 
 func generateDomainPermutations(keywords []string) []string {
 	var result []string
-	tlds := Config.TLDs
+	var tlds []string
+
+	for _, tld_candidate := range Config.TLDs {
+		tld, ok := publicsuffix.PublicSuffix(strings.ToLower(tld_candidate))
+		if !ok {
+			if !Config.OnlyAvailable {
+				fmt.Println(Errored(tld_candidate, errors.New("invalid TLD")))
+			}
+			continue
+		}
+		tlds = append(tlds, tld)
+	}
+	tlds = removeDuplicates(tlds)
+	Config.TLDs = tlds
 
 	if len(tlds) == 0 {
 		tlds = []string{"com"} // Default TLDs if none provided
@@ -171,10 +190,7 @@ func validateKeywords(domainsOrKeywords []string) []string {
 		// check if the domain entered has a TLD
 		if strings.Contains(domainOrKeyword, ".") {
 
-			tld, ok := publicsuffix.PublicSuffix(strings.ToLower(domainOrKeyword))
-			if !ok {
-				slog.Error("Error extracting TLD", "domain", domainOrKeyword)
-			}
+			tld, _ := publicsuffix.PublicSuffix(strings.ToLower(domainOrKeyword))
 
 			domainOrKeyword = strings.TrimSuffix(domainOrKeyword, "."+tld)
 
