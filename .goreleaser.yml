@@ -49,10 +49,6 @@ changelog:
       - "^docs:"
       - "^test:"
 
-signs:
-  - artifacts: checksum
-    args: ["--armor"]
-
 brews:
   - name: tldx
 
