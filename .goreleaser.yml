@@ -49,6 +49,10 @@ changelog:
       - "^docs:"
       - "^test:"
 
+signs:
+  - artifacts: checksum
+    args: ["--armor"]
+
 brews:
   - name: tldx
 
@@ -61,7 +65,7 @@ brews:
       owner: brandonyoungdev
       name: homebrew-tldx
       branch: main
-      token: "{{ .Env.GITHUB_TOKEN }}"
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
       pull_request:
         enabled: true
         base:
@@ -69,7 +73,7 @@ brews:
           name: tldx
           branch: main
 
-    url_template: "https://github.com/brandonyoungdev/tldx/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    url_template: "https://github.com/{{ .ReleaseNotesURL }}"
 
     # Git author used to commit to the repository.
     commit_author:
