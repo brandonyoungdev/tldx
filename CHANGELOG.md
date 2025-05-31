@@ -1,3 +1,11 @@
+## [0.4.1](https://github.com/brandonyoungdev/tldx/compare/v0.4.0...v0.4.1) (2025-05-31)
+
+
+### Bug Fixes
+
+* tags in release ([bd954ec](https://github.com/brandonyoungdev/tldx/commit/bd954ecfe3957a9f1de64cca5e8a7df394eaad64))
+* tags in release ([a2789b3](https://github.com/brandonyoungdev/tldx/commit/a2789b3f41f0d1a73ba448c21845ae85f3d5964c))
+
 # [0.4.0](https://github.com/brandonyoungdev/tldx/compare/v0.3.1...v0.4.0) (2025-05-31)
 
 
