@@ -61,7 +61,7 @@ brews:
       owner: brandonyoungdev
       name: homebrew-tldx
       branch: main
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+      token: "{{ .Env.GITHUB_TOKEN }}"
       pull_request:
         enabled: true
         base:
