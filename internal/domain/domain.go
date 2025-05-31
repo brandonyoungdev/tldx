@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 	"sync"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/likexian/whois"
 	whoisparser "github.com/likexian/whois-parser"
+	"golang.org/x/net/publicsuffix"
 )
 
 type Options struct {
@@ -168,12 +170,17 @@ func validateKeywords(domainsOrKeywords []string) []string {
 
 		// check if the domain entered has a TLD
 		if strings.Contains(domainOrKeyword, ".") {
-			// This is a full domain, let's remove the tld and add it to our config
-			tld := strings.Split(domainOrKeyword, ".")
-			domainOrKeyword = strings.Join(tld[:len(tld)-1], ".")
-			Config.TLDs = append(Config.TLDs, tld[len(tld)-1])
+
+			tld, ok := publicsuffix.PublicSuffix(strings.ToLower(domainOrKeyword))
+			if !ok {
+				slog.Error("Error extracting TLD", "domain", domainOrKeyword)
+			}
+
+			domainOrKeyword = strings.TrimSuffix(domainOrKeyword, "."+tld)
+
+			Config.TLDs = append(Config.TLDs, tld)
 		}
-		validatedKeywords = append(validatedKeywords, domainOrKeyword)
+		validatedKeywords = append(validatedKeywords, strings.ToLower(domainOrKeyword))
 	}
 
 	return removeDuplicates(validatedKeywords)
