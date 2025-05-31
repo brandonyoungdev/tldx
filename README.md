@@ -12,6 +12,17 @@
 Use it to quickly explore domain name ideas for your next product, startup, or side project.
 
 ---
+## 🧠 TL;DR
+
+`tldx` helps you brainstorm available domain names fast.
+
+Give it a few keywords and checks permutations across multiple TLDs—concurrently.
+
+```sh
+tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
+✔️ getopenaily.com is available
+✔️ useopenaihub.io is available
+```
 
 ## ⚡ Features
 
@@ -25,7 +36,7 @@ Use it to quickly explore domain name ideas for your next product, startup, or s
 
 ## 🛠️ Usage
 
-```bash
+```sh
 Usage:
   tldx [keywords] [flags]
   tldx [command]
@@ -46,23 +57,56 @@ Flags:
   -v, --verbose                 Show verbose output
 ```
 
+## 📦 Installation
+#### macOS (Homebrew)
+```sh
+brew install brandonyoungdev/tldx/tldx
+```
+or
+```sh
+brew tap brandonyoungdev/tldx
+brew install tldx
+```
+
+#### Linux and Windows (Manual)
+Visit the [Releases page](https://github.com/brandonyoungdev/tldx/releases).
+
+Download the archive for your OS and architecture:
+
+- macOS / Linux: `tldx_<version>_<os>_<arch>.tar.gz`
+
+- Windows: `tldx_<version>_windows_<arch>.zip`
+
+Extract the binary and move it to a directory in your `$PATH`:
+
+```sh
+# Example for Linux/macOS
+tar -xzf tldx_<version>_<os>_<arch>.tar.gz
+mv tldx /usr/local/bin/
+```
+
+#### Go (Install from Source)
+```sh
+go install github.com/brandonyoungdev/tldx@latest
+```
+
 ## 🔗 Examples
 
 ### Checking Domain Availability
 
 #### `tldx google` 
-```bash
+```sh
 ❌ google.com is not available
 ```
 
 #### `tldx google youtube reddit`
  
-```bash
+```sh
 ❌ google.com is not available
 ```
 
 #### `tldx google youtube reddit`
-```bash
+```sh
   ❌ reddit.com is not available
   ❌ google.com is not available
   ❌ youtube.com is not available
@@ -73,7 +117,7 @@ Flags:
 #### `tldx google --prefixes get,my --suffixes ly,hub --tlds com,io,ai`
 
 This permutates the keywords with the specified prefixes, suffixes, and TLDs, checking for availability:
-```bash
+```sh
   ✔️  mygooglely.com is available
   ✔️  getgooglely.ai is available
   ✔️  getgooglehub.io is available
@@ -85,7 +129,7 @@ This permutates the keywords with the specified prefixes, suffixes, and TLDs, ch
 
 #### `tldx google reddit facebook -p get,my -s ly,hub -t com,io,ai --only-available`
 
-```bash
+```sh
   ✔️  getgooglely.ai is available
   ✔️  getgooglehub.ai is available
   ✔️  mygooglely.io is available
