@@ -1,4 +1,3 @@
-# .github/workflows/version.yml
 name: Version
 
 on:
@@ -10,24 +9,30 @@ jobs:
   version:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # To create tags/releases
-      issues: write # For semantic-release to link issues/PRs in release notes
-      pull-requests: write # For semantic-release to comment on PRs (if configured)
-
+      contents: write
+      issues: write
+      pull-requests: write
     outputs:
-      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
-      new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
+      new_release_published: ${{ steps.semantic.outputs.released }}
+      new_release_git_tag: ${{ steps.semantic.outputs.next-release-git-tag }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # semantic-release needs full history
-          persist-credentials: false # Ensure semantic-release uses its own token
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Install semantic-release and plugins
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies for semantic-release
         run: |
-          npm install semantic-release \
+          npm init -y
+          npm install --save-dev \
+            semantic-release \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
             @semantic-release/changelog \
@@ -37,13 +42,14 @@ jobs:
 
       - name: Run semantic-release
         id: semantic
-        run: |
-          npx semantic-release --no-ci --dry-run=false --debug --ci > result.json || true
-          TAG=$(jq -r '.nextRelease.gitTag' result.json 2>/dev/null || echo "")
-          PUBLISHED=$(jq -r '.published' result.json 2>/dev/null || echo "false")
-
-          echo "new_release_git_tag=$TAG" >> $GITHUB_OUTPUT
-          echo "new_release_published=$PUBLISHED" >> $GITHUB_OUTPUT
-
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            @semantic-release/commit-analyzer
+            @semantic-release/release-notes-generator
+            @semantic-release/changelog
+            @semantic-release/github
+            @semantic-release/git
+            conventional-changelog-conventionalcommits
         env:
           GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
