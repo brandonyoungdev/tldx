@@ -1,18 +1,18 @@
-# Domitool is a CLI tool for researching available domains.
+# tldx is a CLI tool for researching available domains.
 
 ## Usage:
   ```bash
 
-Available Commands:
-  check       Check the availability of a domain
-  completion  Generate the autocompletion script for the specified shell
-  help        Help about any command
-  permutate   Permutate keywords for domain availability
+Usage:
+  tldx [keywords] [flags]
 
 Flags:
-  -u, --gui    Gui instead of raw output stdout
-  -h, --help   help for domitool
-
-Use "domitool [command] --help" for more information about a command.
+  -h, --help                    help for tldx 
+  -m, --max-domain-length int   Maximum length of domain name (default 64)
+  -p, --prefixes strings        Prefixes to add (e.g. get,my,use)
+  -s, --suffixes strings        Suffixes to add (e.g. ify,ly)
+  -t, --tlds strings            TLDs to check (e.g. com,io,dev)
 ```
 
+
+``
