@@ -1,3 +1,10 @@
+## [0.4.8](https://github.com/brandonyoungdev/tldx/compare/v0.4.7...v0.4.8) (2025-05-31)
+
+
+### Bug Fixes
+
+* regex... ([0125c8f](https://github.com/brandonyoungdev/tldx/commit/0125c8f2e853e962b2d3738be8693dad816875a2))
+
 ## [0.4.7](https://github.com/brandonyoungdev/tldx/compare/v0.4.6...v0.4.7) (2025-05-31)
 
 
