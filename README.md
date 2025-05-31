@@ -24,6 +24,18 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 - 🧠 Great for technical founders, indie hackers, and naming brainstorms
 
 
+## 📦 Installation
+#### macOS (Homebrew)
+```sh
+brew install brandonyoungdev/tldx/tldx
+```
+or
+```sh
+brew tap brandonyoungdev/tldx
+brew install tldx
+```
+
+
 ## 🛠️ Usage
 
 ```sh
@@ -46,18 +58,6 @@ Flags:
   -t, --tlds strings            TLDs to check (e.g. com,io,ai)
   -v, --verbose                 Show verbose output
 ```
-
-## 📦 Installation
-#### macOS (Homebrew)
-```sh
-brew install brandonyoungdev/tldx/tldx
-```
-or
-```sh
-brew tap brandonyoungdev/tldx
-brew install tldx
-```
-
 #### Linux and Windows (Manual)
 Visit the [Releases page](https://github.com/brandonyoungdev/tldx/releases).
 
