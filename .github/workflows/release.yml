@@ -3,18 +3,17 @@ name: Release
 
 on:
   workflow_run:
-    workflows: ["Version"] # Important: Must match the 'name:' field of the Version workflow
+    workflows: ["Version"]
     types:
       - completed
 
 permissions:
-  contents: write # For GoReleaser to upload assets to the release
+  contents: write
 
 jobs:
-  goreleaser: # Renamed job for clarity
+  goreleaser:
     name: Run GoReleaser
     runs-on: ubuntu-latest
-    # Only run if the 'Version' workflow (which triggered this run) was successful
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
@@ -30,30 +29,23 @@ jobs:
         id: get_tag
         run: |
           COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
-          echo "Checking for semantic version tag on commit $COMMIT_SHA (from Version workflow)"
+          echo "Checking for tags on commit $COMMIT_SHA"
 
-          # Fetch all tags from remote to ensure we have the latest ones locally.
-          # The checkout action might not fetch all tags by default.
-          git fetch --tags --force
+          # Fetch *all* remote tags explicitly
+          git fetch --tags --force origin 'refs/tags/*:refs/tags/*'
 
-          # Try to find a tag matching vX.Y.Z pattern pointing directly to this commit.
-          # `git describe --tags --exact-match` is perfect for this.
-          # It will error if no tag matches, so we redirect stderr and check output.
-          # We also grep to ensure it's a simple vX.Y.Z tag, adjust if you have complex tag patterns like -rc.
-          TAG_NAME=$(git describe --tags --exact-match "$COMMIT_SHA" 2>/dev/null | grep -o '^v[0-9]\+\.[0-9]\+\.[0-9]\+$' || echo "")
+          # List all tags pointing at this exact commit
+          TAG_NAME=$(git tag --points-at "$COMMIT_SHA" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$' || echo "")
 
           if [ -z "$TAG_NAME" ]; then
-            echo "No new semantic version tag (vX.Y.Z) found on commit $COMMIT_SHA."
-            echo "This likely means semantic-release determined no version bump was needed in the 'Version' workflow."
+            echo "No semantic version tag found on commit $COMMIT_SHA"
             echo "skip_goreleaser=true" >> $GITHUB_OUTPUT
           else
-            echo "Found tag: $TAG_NAME. Proceeding with GoReleaser."
-            # We don't strictly need to output tag_name for GoReleaser if HEAD is correctly tagged,
-            # but it's good for logging or potential future use.
+            echo "Found tag: $TAG_NAME"
             echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
             echo "skip_goreleaser=false" >> $GITHUB_OUTPUT
           fi
-        shell: bash # Explicitly use bash for the grep -o behavior
+        shell: bash
 
       - name: Set up Go
         if: steps.get_tag.outputs.skip_goreleaser == 'false'
