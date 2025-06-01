@@ -61,11 +61,6 @@ Flags:
 ❌ google.com is not available
 ```
 
-#### `tldx google youtube reddit`
- 
-```sh
-❌ google.com is not available
-```
 
 #### `tldx google youtube reddit`
 ```sh
