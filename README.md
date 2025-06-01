@@ -106,6 +106,13 @@ brew tap brandonyoungdev/tldx
 brew install tldx
 ```
 
+#### Arch Linux (AUR)
+
+Two options are available for Arch Linux users:
+
+- [tldx](https://aur.archlinux.org/packages/tldx/) - Build the package from source.
+- [tldx-bin](https://aur.archlinux.org/packages/tldx-bin/) - Build the package from releases.
+
 #### Linux and Windows (Manual)
 Visit the [Releases page](https://github.com/brandonyoungdev/tldx/releases).
 
