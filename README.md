@@ -1,6 +1,4 @@
-<img src="https://github.com/brandonyoungdev/tldx/raw/main/assets/logo.png"
-     alt="tldx logo"
-     style="border-radius: 8px; width: 100%; height: auto; margin-bottom: 20px;" />
+![tldx logo](https://github.com/brandonyoungdev/tldx/raw/main/assets/logo.png)
 
 # tldx
 
