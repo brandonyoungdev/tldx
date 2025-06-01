@@ -16,6 +16,9 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 ✔️ useopenaihub.io is available
 ```
 
+
+![tldx demo](https://github.com/brandonyoungdev/tldx/raw/main/tapes/demo.gif)
+
 ## ⚡ Features
 
 - 🔍 Smart keyword-based domain permutations (prefixes, suffixes, TLDs)
