@@ -5,12 +5,12 @@ github.com/charmbracelet/lipgloss v0.10.0/go.mod h1:Wig9DSfvANsxqkRsqj6x87irdy12
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/likexian/gokit v0.25.13 h1:p2Uw3+6fGG53CwdU2Dz0T6bOycdb2+bAFAa3ymwWVkM=
-github.com/likexian/gokit v0.25.13/go.mod h1:qQhEWFBEfqLCO3/vOEo2EDKd+EycekVtUK4tex+l2H4=
+github.com/likexian/gokit v0.25.15 h1:QjospM1eXhdMMHwZRpMKKAHY/Wig9wgcREmLtf9NslY=
+github.com/likexian/gokit v0.25.15/go.mod h1:S2QisdsxLEHWeD/XI0QMVeggp+jbxYqUxMvSBil7MRg=
 github.com/likexian/whois v1.15.2 h1:p/K2I3tRDT0h/l5XvMNbX0zL3/Nohu5gzVGZIkucm9g=
 github.com/likexian/whois v1.15.2/go.mod h1:m4FoiLAV1TghTwChwNrHTFv0HSWR6EWcES95CHQfnAc=
-github.com/likexian/whois-parser v1.24.12 h1:3YnoBlpQMGmTdBr33SW/VxHxe2osuss4sN7E2KH7V/U=
-github.com/likexian/whois-parser v1.24.12/go.mod h1:b6STMHHDaSKbd4PzGrP50wWE5NzeBUETa/hT9gI0G9I=
+github.com/likexian/whois-parser v1.24.20 h1:oxEkRi0GxgqWQRLDMJpXU1EhgWmLmkqEFZ2ChXTeQLE=
+github.com/likexian/whois-parser v1.24.20/go.mod h1:rAtaofg2luol09H+ogDzGIfcG8ig1NtM5R16uQADDz4=
 github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=
 github.com/lucasb-eyer/go-colorful v1.2.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/mattn/go-isatty v0.0.18 h1:DOKFKCQ7FNG2L1rbrmstDN4QVRdS89Nkh85u68Uwp98=
