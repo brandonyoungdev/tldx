@@ -46,6 +46,10 @@ jobs:
             echo "version_bump=none" >> $GITHUB_OUTPUT
           fi
 
+      - name: Print version bump
+        run: |
+          echo "version_bump? ${{ steps.analyze.outputs.version_bump }}"
+
       - name: Comment on PR if there is a version bump
         if: ${{ steps.analyze.outputs.version_bump != 'none' }}
         uses: marocchino/sticky-pull-request-comment@v2
