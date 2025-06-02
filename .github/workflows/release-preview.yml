@@ -1,0 +1,15 @@
+name: Release preview
+on: [pull_request]
+jobs:
+  release-preview:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      # semantic-release dry-run workaround https://github.com/semantic-release/semantic-release/issues/1890#issuecomment-974512960
+      - run: git checkout -b ${{ github.head_ref }}
+      - run: unset GITHUB_ACTIONS && yarn && node ./bin/semantic-release-github-pr --debug
