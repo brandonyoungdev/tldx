@@ -1,15 +1,40 @@
-name: Release preview
-on: [pull_request]
+name: Release Preview
+
+on: pull_request
+
 jobs:
-  release-preview:
+  preview_release_notes:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    name: Preview release notes
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          node-version: 18
-      # semantic-release dry-run workaround https://github.com/semantic-release/semantic-release/issues/1890#issuecomment-974512960
-      - run: git checkout -b ${{ github.head_ref }}
-      - run: unset GITHUB_ACTIONS && yarn && node ./bin/semantic-release-github-pr --debug
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Generate release notes preview
+        id: build-release-notes
+        uses: guilhermetod/semantic-release-notes-preview@v1.0.0
+
+      - name: Comment release notes preview
+        if: steps.build-release-notes.outputs.releaseNotes
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            ## 👋 Hey there!
+            Thank you for you contribution. Below is a preview of the release notes if your PR gets merged.
+            Please, make sure it includes all your significant changes with descriptive messages.
+            Keep in mind that release notes are automatically generated from the commit messages according to [conventional commits](https://www.conventionalcommits.org/).
+
+            ---
+
+            ${{ steps.build-release-notes.outputs.releaseNotes }}
