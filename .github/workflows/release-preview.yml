@@ -1,40 +1,49 @@
-name: Release Preview
+name: Add release preview comment
 
-on: pull_request
+on: [pull_request]
 
 jobs:
-  preview_release_notes:
+  release-comment:
     runs-on: ubuntu-latest
-    name: Preview release notes
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Collect semantic-release-info
+        id: semantic_release_info
+        uses: fingerprintjs/action-semantic-release-info@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - if: ${{ steps.semantic_release_info.outputs.no_release == 'false' }}
+        name: Add comment to the PR
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          node-version: 20
+          header: ReleasePreview
+          recreate: true
+          message: |
+            ## This PR will create a ${{steps.semantic_release_info.outputs.type}} release :rocket:
+            ${{steps.semantic_release_info.outputs.notes}}
 
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Generate release notes preview
-        id: build-release-notes
-        uses: guilhermetod/semantic-release-notes-preview@v1.0.0
-
-      - name: Comment release notes preview
-        if: steps.build-release-notes.outputs.releaseNotes
-        uses: peter-evans/create-or-update-comment@v1
+      - if: ${{ steps.semantic_release_info.outputs.no_release == 'true' }}
+        name: Add comment to the PR
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          issue-number: ${{ github.event.number }}
-          body: |
-            ## 👋 Hey there!
-            Thank you for you contribution. Below is a preview of the release notes if your PR gets merged.
-            Please, make sure it includes all your significant changes with descriptive messages.
-            Keep in mind that release notes are automatically generated from the commit messages according to [conventional commits](https://www.conventionalcommits.org/).
+          header: ReleasePreview
+          recreate: true
+          message: |
+            ## This PR will not create a new release :rocket:
 
-            ---
-
-            ${{ steps.build-release-notes.outputs.releaseNotes }}
+      - name: Add release notes preview to the job summary
+        if: ${{ steps.semantic_release_info.outputs.no_release == 'false' }}
+        run: |
+          echo "## This PR will create a ${{steps.semantic_release_info.outputs.type}} release :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "${{steps.semantic_release_info.outputs.notes}}" >> $GITHUB_STEP_SUMMARY
+      - name: Add release notes preview to the job summary
+        if: ${{ steps.semantic_release_info.outputs.no_release == 'true' }}
+        run: |
+          echo "## This PR will not create a new release :rocket:" >> $GITHUB_STEP_SUMMARY
