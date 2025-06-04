@@ -5,6 +5,7 @@ import "time"
 type ConfigOptions struct {
 	TLDs            []string
 	Prefixes        []string
+	TLDPreset       string
 	Suffixes        []string
 	MaxDomainLength int
 	Verbose         bool
