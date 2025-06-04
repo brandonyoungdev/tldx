@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/brandonyoungdev/tldx/internal/presets"
 	"github.com/openrdap/rdap"
 	"golang.org/x/net/publicsuffix"
 )
@@ -60,6 +61,19 @@ func generateDomainPermutations(keywords []string) []string {
 	}
 	tlds = removeDuplicates(tlds)
 	Config.TLDs = tlds
+
+	if Config.TLDPreset != "" {
+		// Strip out any . from the preset name
+		tldPreset := strings.TrimPrefix(Config.TLDPreset, ".")
+
+		store := presets.NewTypedStore("tld", presets.DefaultTLDPresets)
+		additionalTlds, ok := store.Get(tldPreset)
+		if !ok {
+			fmt.Println("Error: TLD preset not found:", tldPreset)
+		}
+		tlds = append(tlds, additionalTlds...)
+
+	}
 
 	if len(tlds) == 0 {
 		tlds = []string{"com"} // Default TLDs if none provided
