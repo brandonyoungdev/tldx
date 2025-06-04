@@ -64,10 +64,14 @@ Set FontSize 32
 Set Width 1800
 Set Height 800
 
+Set Margin 20
+Set MarginFill "#674EFF"
+Set BorderRadius 10
+
 Type "tldx google facebook reddit" Sleep 500ms  Enter
 
 Sleep 2s
 
-Type "tldx foo bar --prefixes use,get --suffixes ly,app --tlds com,sh" Sleep 500ms  Enter
+Type "tldx foo bar --prefixes use,get --suffixes ly,app --tlds com,sh,build,dev,io" Sleep 500ms  Enter
 
 Sleep 10s
