@@ -35,10 +35,11 @@ func Errored(domain string, err error) string {
 		PaddingLeft(2).
 		Render
 	// Use the style to format the output
+	emoji := "⚠️"
 
 	if Config.Verbose {
-		return style(fmt.Sprintf("⚠️ %s: %s", domain, err))
+		return style(fmt.Sprintf("%s  %s: %s", emoji, domain, err))
 	}
 
-	return style(fmt.Sprintf("⚠️ % s", domain))
+	return style(fmt.Sprintf("%s  %s errored", emoji, domain))
 }
