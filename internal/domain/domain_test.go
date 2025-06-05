@@ -6,8 +6,6 @@ import (
 	"slices"
 	"testing"
 	"time"
-
-	"github.com/openrdap/rdap"
 )
 
 func TestIsValidDomainOrKeyword(t *testing.T) {
@@ -101,8 +99,7 @@ func TestValidateKeywords(t *testing.T) {
 func TestCheckAvailability_InvalidDomain(t *testing.T) {
 	Config.MaxDomainLength = 63
 	s := ResolverService{
-		config:     &Config,
-		rdapClient: &rdap.Client{},
+		config: &Config,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -120,8 +117,7 @@ func TestCheckAvailability_Timeout(t *testing.T) {
 	defer cancel()
 
 	s := ResolverService{
-		config:     &Config,
-		rdapClient: &rdap.Client{},
+		config: &Config,
 	}
 
 	_, err := s.CheckDomain(ctx, "example.com")

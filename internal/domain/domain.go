@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/brandonyoungdev/tldx/internal/presets"
-	"github.com/openrdap/rdap"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -15,10 +14,7 @@ func Exec(domainsOrKeywords []string) {
 	keywords := validateKeywords(domainsOrKeywords)
 	domains := generateDomainPermutations(keywords)
 	stats.total = len(domains)
-	resolverService := ResolverService{
-		config:     &Config,
-		rdapClient: &rdap.Client{},
-	}
+	resolverService := NewResolverService()
 	resultChan := resolverService.checkDomainsStreaming(domains, concurrencyLimit, contextTimeout)
 
 	output := GetOutputWriter(Config.OutputFormat)

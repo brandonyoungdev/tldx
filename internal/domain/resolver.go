@@ -6,15 +6,19 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/likexian/whois"
+	whoisparser "github.com/likexian/whois-parser"
 	"github.com/openrdap/rdap"
+	"github.com/openrdap/rdap/bootstrap"
 )
 
 type ResolverService struct {
-	rdapClient *rdap.Client
+	httpClient *http.Client
 	config     *ConfigOptions
 }
 
@@ -31,6 +35,13 @@ type CheckResult struct {
 
 type Resolver interface {
 	Check(domain string) (*CheckResult, error)
+}
+
+func NewResolverService() *ResolverService {
+	return &ResolverService{
+		config:     &Config,
+		httpClient: &http.Client{},
+	}
 }
 
 func (s *ResolverService) withRetry(ctx context.Context, fn func() (CheckResult, error)) (CheckResult, error) {
@@ -66,6 +77,27 @@ func (s *ResolverService) CheckDomain(ctx context.Context, domain string) (Check
 	rdapResult, err := s.checkRDAP(ctx, domain)
 	if err == nil {
 		return rdapResult, nil
+	}
+
+	if strings.Contains(err.Error(), "No RDAP servers found for") {
+		// Check for DNS resolution if RDAP is not available
+		dnsResolved, err := s.checkIfDNSResolves(ctx, domain)
+		if s.config.Verbose {
+			fmt.Println("Checking DNS resolution for domain:", domain, "Resolved:", dnsResolved, "Error:", err)
+		}
+
+		if dnsResolved {
+			return CheckResult{
+				Registered: true,
+				Details:    fmt.Sprintf("Domain %s has a DNS record, but RDAP is not available", domain),
+			}, nil
+		}
+
+		whoisResult, err := s.checkWhois(ctx, domain)
+		if !whoisResult.Registered && err == nil {
+			return whoisResult, err
+		}
+
 	}
 
 	if ctx.Err() != nil {
@@ -104,11 +136,13 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 		return CheckResult{
 			Registered: true,
 			Details:    fmt.Sprintf("RDAP query error for domain %s:", domain),
-		}, nil
+		}, err
 	}
 
 	if domainResponse == nil {
-		fmt.Println("RDAP response is nil for domain:", domain)
+		if s.config.Verbose {
+			fmt.Println("RDAP response is nil for domain:", domain)
+		}
 		return CheckResult{
 			Registered: false,
 			Details:    fmt.Sprintf("No RDAP available for %s", domain),
@@ -121,15 +155,69 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 	}, nil
 }
 
-func (s *ResolverService) checkDNS(domain string) (CheckResult, error) {
-	ips, err := net.LookupHost(domain)
+func (s *ResolverService) checkIfDNSResolves(ctx context.Context, domain string) (bool, error) {
+	resolver := net.Resolver{}
+	ips, err := resolver.LookupHost(ctx, domain)
 	if err != nil {
-		// DNS resolution failure: might be unregistered or inactive
-		return CheckResult{Registered: false}, err
+		return false, err
 	}
+
+	return len(ips) > 0, nil
+}
+
+func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckResult, error) {
+	type result struct {
+		raw string
+		err error
+	}
+
+	resultCh := make(chan result, 1)
+
+	go func() {
+		raw, err := whois.Whois(domain)
+		resultCh <- result{raw: raw, err: err}
+	}()
+
+	var whoisRaw string
+	select {
+	case <-ctx.Done():
+		return CheckResult{Registered: false}, ctx.Err()
+	case res := <-resultCh:
+		if res.err != nil {
+			// Fallback: detect "not found" in raw whois text if err is nil but body says unregistered
+			if strings.Contains(strings.ToLower(res.err.Error()), "no whois server") {
+				return CheckResult{
+					Registered: false,
+					Details:    "WHOIS server not found for domain",
+				}, nil
+			}
+			return CheckResult{Registered: false}, fmt.Errorf("WHOIS lookup error: %w", res.err)
+		}
+		whoisRaw = res.raw
+	}
+
+	parsed, err := whoisparser.Parse(whoisRaw)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "domain is not found") ||
+			strings.Contains(strings.ToLower(whoisRaw), "no match for") ||
+			strings.Contains(strings.ToLower(whoisRaw), "not found") {
+			// Domain is likely unregistered
+			return CheckResult{
+				Registered: false,
+				Details:    "Domain not registered (WHOIS says not found)",
+			}, nil
+		}
+
+		return CheckResult{
+			Registered: false,
+			Details:    fmt.Sprintf("Failed to parse WHOIS for %s: %v", domain, err),
+		}, nil
+	}
+
 	return CheckResult{
 		Registered: true,
-		Details:    fmt.Sprintf("Resolved to: %v", ips),
+		Details: fmt.Sprintf("WHOIS Registered: %s (%s)",
+			parsed.Registrar.Name, parsed.Domain.CreatedDate),
 	}, nil
 }
 
@@ -186,7 +274,14 @@ func (s ResolverService) QueryDomainContext(ctx context.Context, domain string) 
 
 	req = req.WithContext(ctx)
 
-	resp, err := s.rdapClient.Do(req)
+	client := &rdap.Client{
+		Bootstrap: &bootstrap.Client{
+			HTTP: s.httpClient,
+		},
+		HTTP: s.httpClient,
+	}
+
+	resp, err := client.Do(req)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch RDAP data for domain %q: %w", domain, err)

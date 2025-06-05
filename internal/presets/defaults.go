@@ -41,7 +41,7 @@ var DefaultTLDPresets = map[string][]string{
 		"art", "design", "ink", "gallery", "photo", "photography", "pics", "pictures", "studio", "style", "film", "show", "actor", "audio", "video", "dance", "music",
 	},
 	"business": {
-		"com", "co", "biz", "ltd", "llc", "inc", "company", "global", "international", "solutions", "enterprises", "group", "holdings", "corp", "agency", "network", "ventures", "partners",
+		"com", "co", "biz", "ltd", "llc", "inc", "company", "global", "international", "solutions", "enterprises", "group", "holdings", "agency", "network", "ventures", "partners",
 	},
 	"food": {
 		"cafe", "bar", "restaurant", "pub", "menu", "eat", "pizza", "organic", "recipes", "cooking", "kitchen", "catering", "delivery",
