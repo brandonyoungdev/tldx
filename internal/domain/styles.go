@@ -35,6 +35,10 @@ func Errored(domain string, err error) string {
 		PaddingLeft(2).
 		Render
 	// Use the style to format the output
-	return style(fmt.Sprintf("❌ %s: %s", domain, err))
 
+	if Config.Verbose {
+		return style(fmt.Sprintf("⚠️ %s: %s", domain, err))
+	}
+
+	return style(fmt.Sprintf("⚠️ % s", domain))
 }

@@ -34,7 +34,7 @@ type TextOutput struct{}
 func (o *TextOutput) Write(result DomainResult) {
 	switch {
 	case result.Error != nil:
-		if Config.Verbose {
+		if !Config.OnlyAvailable || Config.Verbose {
 			fmt.Println(Errored(result.Domain, result.Error))
 		}
 	case result.Available:
