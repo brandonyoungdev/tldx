@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -19,8 +18,11 @@ func init() {
 	rootCmd.Flags().BoolVarP(&domain.Config.OnlyAvailable, "only-available", "a", false, "Show only available domains")
 	rootCmd.Flags().IntVarP(&domain.Config.MaxDomainLength, "max-domain-length", "m", 64, "Maximum length of domain name")
 	rootCmd.Flags().BoolVar(&domain.Config.ShowStats, "show-stats", false, "Show statistics at the end of execution")
+	rootCmd.Flags().StringVar(&domain.Config.TLDPreset, "tld-preset", "", "Use a tld preset (e.g. popular, tech)")
+	rootCmd.Flags().StringVarP(&domain.Config.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv)")
 
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(showPresetsCmd)
 }
 
 var rootCmd = &cobra.Command{
@@ -40,12 +42,4 @@ func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
-}
-
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print the version",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("tldx version:", version)
-	},
 }

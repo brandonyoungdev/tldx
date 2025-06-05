@@ -19,11 +19,29 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 
 ![tldx demo](https://github.com/brandonyoungdev/tldx/raw/main/tapes/demo.gif)
 
+## 📚 Table of Contents
+
+- [⚡ Features](#-features)
+- [🛠️ Usage](#️-usage)
+- [🔗 Examples](#-examples)
+  - [Domain Availability](#domain-availability)
+  - [Presets](#presets)
+  - [Permutations](#permutations)
+  - [Show Only Available Domains](#show-only-available-domains)
+  - [Output Formats](#output-formats)
+- [📦 Installation](#-installation)
+  - [macOS (Homebrew)](#macos-homebrew)
+  - [Arch Linux (AUR)](#arch-linux-aur)
+  - [Linux and Windows (Manual)](#linux-and-windows-manual)
+  - [Go (Install from Source)](#go-install-from-source)
+
 ## ⚡ Features
 
 - 🔍 Smart keyword-based domain permutations (prefixes, suffixes, TLDs)
-- 🚀 Fast and concurrent WHOIS availability checks
+- 🚀 Fast and concurrent availability checks with RDAP
 - 📤 Streams results as they're found
+- 📦 Supports multiple output formats (text, json, json-stream, json-array, csv)
+- 🔧 Supports TLD presets to quickly select groups of common or curated TLD sets
 - 📏 Optional filtering by domain length
 - 🧠 Great for technical founders, indie hackers, and naming brainstorms
 
@@ -36,17 +54,20 @@ Usage:
   tldx [command]
 
 Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  help        Help about any command
-  version     Print the version
+  completion       Generate the autocompletion script for the specified shell
+  help             Help about any command
+  show-tld-presets Show available TLD presets
+  version          Print the version
 
 Flags:
+  -f, --format string           Format of output (text, json, json-stream, json-array, csv) (default "text")
   -h, --help                    help for tldx
   -m, --max-domain-length int   Maximum length of domain name (default 64)
   -a, --only-available          Show only available domains
   -p, --prefixes strings        Prefixes to add (e.g. get,my,use)
-      --show-stats              Show statistics
+      --show-stats              Show statistics at the end of execution
   -s, --suffixes strings        Suffixes to add (e.g. ify,ly)
+      --tld-preset string       Use a tld preset (e.g. popular, tech)
   -t, --tlds strings            TLDs to check (e.g. com,io,ai)
   -v, --verbose                 Show verbose output
 ```
@@ -54,27 +75,60 @@ Flags:
 
 ## 🔗 Examples
 
-### Checking Domain Availability
+### Domain Availability
 
-#### `tldx google` 
 ```sh
+$ tldx google
 ❌ google.com is not available
 ```
 
-
-#### `tldx google youtube reddit`
 ```sh
+$ tldx google youtube reddit
   ❌ reddit.com is not available
   ❌ google.com is not available
   ❌ youtube.com is not available
 ```
 
-### Permutations
+### Presets
 
-#### `tldx google --prefixes get,my --suffixes ly,hub --tlds com,io,ai`
+You can use presets for tlds. For example:
+
+```sh
+$ tldx google --tld-preset popular 
+  ❌ google.com is not available
+  ❌ google.co is not available
+  ❌ google.io is not available
+  ❌ google.net is not available
+  ...
+```
+
+```sh
+$ tldx google --tld-preset geo
+  ❌ google.au is not available
+  ❌ google.de is not available
+  ❌ google.us is not available
+  ❌ google.eu is not available
+  ...
+```
+
+
+You can see all of the available presets:
+```sh
+$ tldx show-tld-presets
+
+== TLD Presets ==
+
+- business: com, co, biz, ltd, llc, inc, ...
+- creative: art, design, ink, ... 
+- design: design, graphics, studio, art, gallery, ink
+  ...
+```
+
+### Permutations
 
 This permutates the keywords with the specified prefixes, suffixes, and TLDs, checking for availability:
 ```sh
+$ tldx google --prefixes get,my --suffixes ly,hub --tlds com,io,ai
   ✔️  mygooglely.com is available
   ✔️  getgooglely.ai is available
   ❌ mygoogle.ai is not available
@@ -83,9 +137,8 @@ This permutates the keywords with the specified prefixes, suffixes, and TLDs, ch
 
 ### Show Only Available Domains
 
-#### `tldx google reddit facebook -p get,my -s ly,hub -t com,io,ai --only-available`
-
 ```sh
+$ tldx google reddit facebook -p get,my -s ly,hub -t com,io,ai --only-available
   ✔️  getgooglely.ai is available
   ✔️  getreddithub.com is available
   ✔️  getreddit.ai is available
@@ -94,6 +147,43 @@ This permutates the keywords with the specified prefixes, suffixes, and TLDs, ch
   ✔️  facebookly.io is available
   ...
 ```
+
+### Output Formats 
+
+By default, output is human-readable (`text`). You can change it with the `--format` or `-f` flag:
+
+```sh
+$ tldx openai -p use -s ly -t io --format json  
+[
+  {
+    "domain": "openaily.io",
+    "available": true 
+  },
+  {
+    "domain": "openai.io",
+    "available": false
+  },
+  ...
+]
+```
+
+
+```sh
+$ tldx openai -p use -s ly -t io --format json-stream
+{"domain":"useopenaily.io","available":true}
+{"domain":"openai.io","available":false}
+...
+```
+
+
+```sh
+$ tldx openai -p use -s ly -t io --format csv
+domain,available,error
+openaily.io,true,
+openai.io,false,
+...
+```
+
 
 ## 📦 Installation
 #### macOS (Homebrew)

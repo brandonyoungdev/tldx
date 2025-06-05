@@ -98,10 +98,14 @@ func TestValidateKeywords(t *testing.T) {
 
 func TestCheckAvailability_InvalidDomain(t *testing.T) {
 	Config.MaxDomainLength = 63
+	s := ResolverService{
+		config: &Config,
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	_, err := checkAvailability(ctx, "@@@invalid###.com")
+	_, err := s.CheckDomain(ctx, "@@@invalid###.com")
 	if err == nil {
 		t.Errorf("Expected error for invalid domain")
 	}
@@ -112,7 +116,11 @@ func TestCheckAvailability_Timeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond) // force timeout
 	defer cancel()
 
-	_, err := checkAvailability(ctx, "example.com")
+	s := ResolverService{
+		config: &Config,
+	}
+
+	_, err := s.CheckDomain(ctx, "example.com")
 	if err == nil || !errors.Is(err, context.DeadlineExceeded) {
 		t.Errorf("Expected context deadline exceeded, got %v", err)
 	}
