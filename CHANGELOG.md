@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/brandonyoungdev/tldx/compare/v1.1.0...v1.1.1) (2025-06-05)
+
+
+### Bug Fixes
+
+* update styles ([#29](https://github.com/brandonyoungdev/tldx/issues/29)) ([2688407](https://github.com/brandonyoungdev/tldx/commit/26884070b8bb9f55401eeb6f3e7d24b9ffefacd5))
+
 # [1.1.0](https://github.com/brandonyoungdev/tldx/compare/v1.0.0...v1.1.0) (2025-06-05)
 
 
