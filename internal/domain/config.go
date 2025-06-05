@@ -11,6 +11,7 @@ type ConfigOptions struct {
 	Verbose         bool
 	OnlyAvailable   bool
 	ShowStats       bool
+	OutputFormat    string
 }
 
 const (
@@ -19,7 +20,7 @@ const (
 	backoffFactor    = 5.0
 	jitterFraction   = 0.7 // +/-70% randomness
 	contextTimeout   = 15 * time.Second
-	concurrencyLimit = 20
+	concurrencyLimit = 15
 )
 
 var Config = ConfigOptions{}

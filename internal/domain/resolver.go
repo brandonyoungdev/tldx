@@ -21,8 +21,7 @@ type ResolverService struct {
 type DomainResult struct {
 	Domain    string `json:"domain"`
 	Available bool   `json:"available"`
-	Source    string
-	Error     error `json:"error,omitempty"`
+	Error     error  `json:"error,omitempty"`
 }
 
 type CheckResult struct {

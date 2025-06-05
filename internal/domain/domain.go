@@ -21,26 +21,22 @@ func Exec(domainsOrKeywords []string) {
 	}
 	resultChan := resolverService.checkDomainsStreaming(domains, concurrencyLimit, contextTimeout)
 
+	output := GetOutputWriter(Config.OutputFormat)
+
 	for result := range resultChan {
 		if result.Error != nil {
-			stats.errored += 1
-			if Config.Verbose {
-				fmt.Println(Errored(result.Domain, result.Error))
-			}
-			continue
-		}
-		if result.Available {
-			stats.available += 1
-			fmt.Println(Available(result.Domain))
+			stats.errored++
+		} else if result.Available {
+			stats.available++
 		} else {
-			stats.notAvailable += 1
-			if Config.OnlyAvailable {
-				continue
-			}
-			fmt.Println(NotAvailable(result.Domain))
+			stats.notAvailable++
 		}
+		output.Write(result)
 	}
-	if Config.ShowStats {
+
+	output.Flush()
+
+	if Config.ShowStats && Config.OutputFormat == "text" {
 		fmt.Println(RenderStatsSummary())
 	}
 }
