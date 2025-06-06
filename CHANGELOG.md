@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/brandonyoungdev/tldx/compare/v1.1.1...v1.2.0) (2025-06-06)
+
+
+### Features
+
+* added all preset ([#31](https://github.com/brandonyoungdev/tldx/issues/31)) ([5b5e937](https://github.com/brandonyoungdev/tldx/commit/5b5e937eaddca04c3a7d936db246b0962f31f227))
+
 ## [1.1.1](https://github.com/brandonyoungdev/tldx/compare/v1.1.0...v1.1.1) (2025-06-05)
 
 
