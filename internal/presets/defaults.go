@@ -29,7 +29,7 @@ var DefaultTLDPresets = map[string][]string{
 		"dev", "sh", "lol", "wtf", "zip", "ninja", "tech", "codes",
 	},
 	"experimental": {
-		"zip", "mov", "foo", "phd", "prof", "esq", "boo",
+		"zip", "mov", "phd", "prof", "esq", "boo",
 	},
 	"geo": {
 		"us", "uk", "ca", "de", "fr", "in", "au", "eu", "asia", "co.uk",

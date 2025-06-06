@@ -8,7 +8,13 @@
           "releaseRules": [
             { "type": "fix", "release": "patch" },
             { "type": "feat", "release": "minor" },
-            { "type": "chore", "release": false }
+            { "type": "chore", "release": false },
+            { "type": "docs", "release": false },
+            { "type": "style", "release": false },
+            { "type": "refactor", "release": false },
+            { "type": "perf", "release": false },
+            { "type": "test", "release": false },
+            { "type": "build", "release": false }
           ]
       }
     ],
