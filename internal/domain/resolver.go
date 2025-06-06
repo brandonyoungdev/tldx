@@ -81,7 +81,7 @@ func (s *ResolverService) CheckDomain(ctx context.Context, domain string) (Check
 
 	if strings.Contains(err.Error(), "No RDAP servers found for") {
 		// dns fallback
-		dnsResolved, err := s.checkIfDNSResolves(ctx, domain)
+		dnsResolved, _ := s.checkIfDNSResolves(ctx, domain)
 
 		if dnsResolved {
 			return CheckResult{
