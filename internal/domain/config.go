@@ -7,6 +7,7 @@ type ConfigOptions struct {
 	Prefixes        []string
 	TLDPreset       string
 	Suffixes        []string
+	AllTLDs         bool
 	MaxDomainLength int
 	Verbose         bool
 	OnlyAvailable   bool

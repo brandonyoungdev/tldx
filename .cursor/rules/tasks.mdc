@@ -1,0 +1,128 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Ultimate Project Checklist Generation Prompt (Updated with Line Break Formatting)
+
+Use this comprehensive prompt to create the most effective tagged project checklists with proper line breaks and clear tracking goals:
+
+---
+
+## **Generate a Complete Project Checklist Template (`docs\tasks.md`)**
+
+**Create a comprehensive project management checklist for [PROJECT NAME] that includes clear tracking goals, issue documentation, and progress monitoring capabilities with proper markdown formatting.**
+
+## **Header Template (Project Scope & Tracking Goals)**
+
+
+
+`This document tracks all tasks for {project.name} and updates them as they are completed and should include comments if there were any issues or anything with that task and what steps were taken to complete it successfully. ## Project Overview **Objective**: [Clear, measurable project goal]   **Success Criteria**: [3-5 specific, quantifiable outcomes]   **Timeline**: [Project duration with key milestones]   **Scope Boundaries**: [What's included/excluded]   ## Tracking Goals **Primary Objectives**:   - Track completion rate: Maintain ≥90% on-time task delivery   - Quality assurance: Keep rework rate ≤10% of completed tasks   - Issue resolution: Average resolution time ≤2 business days   - Documentation: 100% of tasks include resolution notes and lessons learned   - Resource monitoring: Track effort allocation and identify bottlenecks   **Update Frequency**: Daily status updates, weekly progress reviews, bi-weekly trend analysis   **Success Metrics**:   - Progress visibility: [completed]/[total] tasks with percentage tracking   - Quality score: Tasks completed without rework vs. total tasks   - Timeline adherence: Actual vs. planned completion dates   - Knowledge capture: Issues documented with resolution steps`  
+
+## **Critical Formatting Requirements**
+
+## **Line Break Rules for Tasks**
+
+- **End each task line with two spaces followed by Enter** to ensure proper line breaks[2](https://szymonkrajewski.pl/line-break-in-markdown/)[3](https://stackoverflow.com/questions/36583502/how-to-force-a-linebreak)[5](https://www.markdownguide.org/basic-syntax/)
+    
+- **Use consistent indentation**: 2 spaces for sub-tasks, 4 spaces for sub-sub-tasks
+    
+- **Each checkbox must be on its own line** with proper spacing
+    
+- **Add blank lines between major task sections** for readability
+    
+
+## **Task Structure Format Example**
+
+
+
+`### ✅ Phase 1: Foundation & Architecture   - [x] **Project Structure Setup** #setup #foundation #architecture     - [x] Create project directory structure  - [x] Set up src/ package with __init__.py  - [x] Create #requirements.txt with #dependencies  - [x] Initialize configuration system   - [ ] **Configuration Management** #config #management #system     - [ ] Implement #ConfigManager class  - [ ] Create JSON-based configuration system  - [ ] Add default configuration values  - [ ] Implement configuration loading and saving    - [ ] Add configuration validation methods    - [ ] Create configuration backup system   - [ ] **API Integration** #API #integration #external     - [ ] Implement #CryptoAPIFetcher class  - [ ] Add #CoinGecko #API integration  - [ ] Implement error handling for API calls`  
+
+## **Hierarchical Organization with Proper Spacing**
+
+## **1. Main Task Format**
+
+
+
+`- [x] **Main Task Name** #tag1 #tag2 #tag3`  
+
+## **2. Sub-task Format**
+
+
+
+  `- [x] Sub-task description #tag1 #tag2`  
+
+## **3. Sub-sub-task Format**
+
+
+
+    `- [x] Sub-sub-task description #tag1 #tag2`  
+
+## **4. Issue Documentation Format** (with proper line breaks)
+
+
+
+`- [x] **Task Name** #tag1 #tag2 #tag3     - **Issue Encountered**: [Specific problem description]  - **Root Cause**: [Analysis of why it occurred]  - **Resolution Steps**:    1. [First action taken]    2. [Second action taken]    3. [Final resolution]  - **Prevention Measures**: [How to avoid in future]  - **Time Impact**: [Additional time required]  - **Lessons Learned**: [Key insights for team]`  
+
+## **Comprehensive Tagging System**
+
+- Tag **every task line** with 2-4 relevant `#tags`
+    
+- Include technical tags: `#API`, `#database`, `#frontend`, `#testing`
+    
+- Add process tags: `#planning`, `#implementation`, `#validation`, `#deployment`
+    
+- Use tool-specific tags: `#React`, `#Python`, `#Docker`, `#AWS`
+    
+- Include domain tags: `#security`, `#performance`, `#UX`, `#documentation`
+    
+
+## **Phase Organization Template**
+
+## **Core Project Phases**
+
+
+
+`## Core Development Tasks   ### ✅ Phase 1: Foundation & Planning #foundation #planning #setup   ### ⏳ Phase 2: Core Development #development #implementation #coding   ### ⏳ Phase 3: Integration & Testing #integration #testing #validation   ### ⏳ Phase 4: Documentation & Quality #documentation #quality #review   ### ⏳ Phase 5: Deployment & Distribution #deployment #release #distribution   ### ⏳ Phase 6: Maintenance & Enhancement #maintenance #enhancement #support`  
+
+## **Task Categories with Proper Formatting**
+
+
+
+`## Testing & Validation Tasks   ### ⏳ Phase 5: Testing #testing #validation #QA   - [ ] **Dependency Installation** #dependencies #setup #environment     - [ ] Successfully install all required dependencies  - [ ] Resolve any package conflicts or compatibility issues  - [ ] Verify all imports work correctly   - [ ] **Application Deployment** #deployment #startup #initialization     - [ ] Test application startup and initialization  - [ ] Verify system components creation and display  - [ ] Confirm overlay positioning and display  - [ ] Test API connectivity and data fetching`  
+
+## **Footer Template (Progress Tracking) with Proper Formatting**
+
+
+
+`# Project Status Summary   - **Completed**: [X] tasks ✅   - **In Progress**: [Y] tasks ⏳   - **Pending**: [Z] tasks ⏳   - **Blocked**: [B] tasks ⚠️   - **Total Progress**: [%] complete   ### Current Status: **[Current Phase/Milestone]** [Status Emoji]   ### Latest Achievement: **[Recent Major Accomplishment]** ✅   - [Key technical breakthrough or milestone]   - [Business impact or value delivered]   - [Process improvements implemented]   - [Quality metrics achieved]   ### Issue Resolution Summary 🔧   - **Issues Resolved This Week**: [Number] (Average resolution time: [X] days)   - **Current Blockers**: [Number] (Oldest: [X] days)   - **Prevention Measures Added**: [Number of new safeguards implemented]   ### Next Priority Tasks ⏳   1. **[Task 1]** #tags - [Owner] - [Target Date] - [Risk Level]   2. **[Task 2]** #tags - [Owner] - [Target Date] - [Risk Level]   3. **[Task 3]** #tags - [Owner] - [Target Date] - [Risk Level]   4. **[Task 4]** #tags - [Owner] - [Target Date] - [Risk Level]   5. **[Task 5]** #tags - [Owner] - [Target Date] - [Risk Level]   ## Project Status: [%] Complete ([completed]/[total] tasks)   ### ✅ Recently Completed (Version [X.X.X])   - [x] [Achievement 1] - [Resolution summary and impact]   - [x] [Achievement 2] - [Resolution summary and impact]   - [x] [Achievement 3] - [Resolution summary and impact]   ### 🔧 Issues Resolved   - **[Issue Type]**: [Problem] → [Solution] → [Time Impact: +X days]   - **[Issue Type]**: [Problem] → [Solution] → [Time Saved: -X days]   ### 📚 Lessons Learned This Sprint   - **Technical**: [Key technical insight]   - **Process**: [Workflow improvement discovered]   - **Quality**: [Prevention measure implemented]   - **Communication**: [Collaboration enhancement]   ### 📊 Quality Metrics   - **Rework Rate**: [%] (Target: ≤10%)   - **On-Time Delivery**: [%] (Target: ≥90%)   - **Documentation Coverage**: [%] (Target: 100%)   - **Issue Resolution Time**: [X] days average (Target: ≤2 days)`  
+
+## **Markdown Formatting Guidelines**
+
+## **Essential Line Break Rules**1[2](https://szymonkrajewski.pl/line-break-in-markdown/)[3](https://stackoverflow.com/questions/36583502/how-to-force-a-linebreak)[5](https://www.markdownguide.org/basic-syntax/)
+
+1. **End every task line with two spaces** followed by Enter
+    
+2. **Use blank lines** between major sections and phase headers
+    
+3. **Maintain consistent indentation**: 2 spaces per level
+    
+4. **Each checkbox item** must be on its own line
+    
+5. **Avoid mixing** different list markers in the same section
+    
+
+## **Status Indicators with Proper Spacing**
+
+- `✅` **Completed**: Task finished successfully
+    
+- `⏳` **In Progress**: Currently being worked on
+    
+- `🔧` **Issue**: Problem encountered, being resolved
+    
+- `🔄` **Ongoing**: Continuous/maintenance task
+    
+- `⚠️` **Blocked**: Cannot proceed due to dependency
+    
+
+- `📋` **Review**: Completed but pending approval

@@ -211,6 +211,13 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 		}, nil
 	}
 
+	if parsed.Registrar == nil || parsed.Domain == nil {
+		return CheckResult{
+			Registered: true, // It's registered, but we have partial data
+			Details:    "WHOIS Registered: (partial data)",
+		}, nil
+	}
+
 	return CheckResult{
 		Registered: true,
 		Details: fmt.Sprintf("WHOIS Registered: %s (%s)",

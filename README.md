@@ -12,8 +12,8 @@
 
 ```sh
 tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
-✔️ getopenaily.com is available
-✔️ useopenaihub.io is available
+✔️ getopenaily.com
+✔️ useopenaihub.io
 ```
 
 
@@ -60,6 +60,7 @@ Available Commands:
   version          Print the version
 
 Flags:
+  -b, --all-tlds                Check all TLDs, this overrides --tlds and --tld-preset
   -f, --format string           Format of output (text, json, json-stream, json-array, csv) (default "text")
   -h, --help                    help for tldx
   -m, --max-domain-length int   Maximum length of domain name (default 64)
@@ -79,14 +80,14 @@ Flags:
 
 ```sh
 $ tldx google
-❌ google.com is not available
+❌ google.com
 ```
 
 ```sh
 $ tldx google youtube reddit
-  ❌ reddit.com is not available
-  ❌ google.com is not available
-  ❌ youtube.com is not available
+  ❌ reddit.com
+  ❌ google.com
+  ❌ youtube.com
 ```
 
 ### Presets
@@ -95,19 +96,19 @@ You can use presets for tlds. For example:
 
 ```sh
 $ tldx google --tld-preset popular 
-  ❌ google.com is not available
-  ❌ google.co is not available
-  ❌ google.io is not available
-  ❌ google.net is not available
+  ❌ google.com
+  ❌ google.co
+  ❌ google.io
+  ❌ google.net
   ...
 ```
 
 ```sh
 $ tldx google --tld-preset geo
-  ❌ google.au is not available
-  ❌ google.de is not available
-  ❌ google.us is not available
-  ❌ google.eu is not available
+  ❌ google.au
+  ❌ google.de
+  ❌ google.us
+  ❌ google.eu
   ...
 ```
 
@@ -129,9 +130,9 @@ $ tldx show-tld-presets
 This permutates the keywords with the specified prefixes, suffixes, and TLDs, checking for availability:
 ```sh
 $ tldx google --prefixes get,my --suffixes ly,hub --tlds com,io,ai
-  ✔️  mygooglely.com is available
-  ✔️  getgooglely.ai is available
-  ❌ mygoogle.ai is not available
+  ✔️  mygooglely.com
+  ✔️  getgooglely.ai
+  ❌ mygoogle.ai
   ...
 ```
 
@@ -139,12 +140,12 @@ $ tldx google --prefixes get,my --suffixes ly,hub --tlds com,io,ai
 
 ```sh
 $ tldx google reddit facebook -p get,my -s ly,hub -t com,io,ai --only-available
-  ✔️  getgooglely.ai is available
-  ✔️  getreddithub.com is available
-  ✔️  getreddit.ai is available
-  ✔️  googlely.ai is available
-  ✔️  getredditly.com is available
-  ✔️  facebookly.io is available
+  ✔️  getgooglely.ai
+  ✔️  getreddithub.com
+  ✔️  getreddit.ai
+  ✔️  googlely.ai
+  ✔️  getredditly.com
+  ✔️  facebookly.io
   ...
 ```
 
@@ -182,6 +183,19 @@ domain,available,error
 openaily.io,true,
 openai.io,false,
 ...
+```
+
+### Check All TLDs
+
+You can check against all available TLDs.
+
+```sh
+$ tldx google --all-tlds --only-available
+  ✔️ google.company
+  ✔️ google.codes
+  ✔️ google.community
+  ✔️ google.eat
+  ...
 ```
 
 

@@ -1,0 +1,45 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# After each response, generate 10 of the most logical suggestions for all 3 of the following categories with each deserving it's own file:
+
+1. Frontend suggestions (docs\frontend_suggestions.md) 
+2. Backend suggestions (docs\backend_suggestions.md)
+3. Bonus suggestions (docs\bonus_suggestions.md)
+
+# Here are some example suggestion categories: 
+
+- Feature suggestions, 
+- UI\UX suggestions, 
+- Libraries, 
+- Frameworks, 
+- Security, 
+- Error Handling, 
+- APIs, 
+- External Sources, 
+- Tools, 
+- Alternatives, 
+- Content. 
+
+The more the better. Just be sure to explain what it is and how it would help or make the project better. 
+
+# On each table, you'll need several columns like below... 
+
+- Name, 
+- Description, 
+- Price, 
+- Supported OS,
+- Link, 
+- Pros, 
+- Cons, 
+- Your Grade (0 - 100), 
+- Your Grade Explained (Why it's not 100 and where it lost points and how many points),
+- User Rating (if available), 
+- Popularity (# of downloads), 
+- 10 Best Alternatives (as links), 
+- Why you suggested it, 
+
+
+and as many other columns as you feel like adding... the more, the better. I need at least those columns for every type of table that you suggest. 

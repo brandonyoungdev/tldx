@@ -41,6 +41,10 @@ func generateDomainPermutations(keywords []string) []string {
 	var result []string
 	var tlds []string
 
+	if Config.AllTLDs {
+		tlds = presets.GetAllTLDs()
+	}
+
 	for _, tld_candidate := range Config.TLDs {
 		tld, ok := publicsuffix.PublicSuffix(strings.ToLower(tld_candidate))
 		if !ok {
@@ -54,7 +58,7 @@ func generateDomainPermutations(keywords []string) []string {
 	tlds = removeDuplicates(tlds)
 	Config.TLDs = tlds
 
-	if Config.TLDPreset != "" {
+	if Config.TLDPreset != "" && !Config.AllTLDs {
 		// Strip out any . from the preset name
 		tldPreset := strings.TrimPrefix(Config.TLDPreset, ".")
 
