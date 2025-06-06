@@ -58,9 +58,12 @@ func generateDomainPermutations(keywords []string) []string {
 		// Strip out any . from the preset name
 		tldPreset := strings.TrimPrefix(Config.TLDPreset, ".")
 
-		store := presets.NewTypedStore("tld", presets.DefaultTLDPresets)
-		additionalTlds, ok := store.Get(tldPreset)
-		if !ok {
+		var additionalTlds []string
+		if tldPreset == "all" {
+			additionalTlds = presets.GetAllTLDs()
+		} else if tlds, ok := presets.TLDs.Get(tldPreset); ok {
+			additionalTlds = tlds
+		} else {
 			fmt.Println("Error: TLD preset not found:", tldPreset)
 		}
 		tlds = append(tlds, additionalTlds...)

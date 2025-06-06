@@ -50,6 +50,7 @@ func ShowAllPresets[T any](ps *PresetStore[T], stringify func(T) string) {
 	sort.Strings(names)
 
 	fmt.Printf("\n== %s Presets ==\n\n", strings.ToTitle(ps.Kind))
+	fmt.Printf("- %s: %s\n\n", "all", "all presets")
 	for _, name := range names {
 		fmt.Printf("- %s: %s\n", name, stringify(all[name]))
 	}
