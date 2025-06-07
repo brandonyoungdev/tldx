@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -34,6 +35,14 @@ var rootCmd = &cobra.Command{
 			slog.Error("Invalid max-domain-length provided. Pick a positive number please.")
 			return
 		}
+		if domain.Config.OutputFormat == "" {
+			if domain.Config.Verbose {
+				// This is okay, since it'll output text by default.
+				fmt.Println("Unknown output format. Defaulting to text.")
+			}
+			domain.Config.OutputFormat = "text"
+		}
+
 		domain.Exec(args)
 	},
 }

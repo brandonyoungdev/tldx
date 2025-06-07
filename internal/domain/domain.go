@@ -33,6 +33,7 @@ func Exec(domainsOrKeywords []string) {
 	output.Flush()
 
 	if Config.ShowStats && Config.OutputFormat == "text" {
+		// TODO: pipe this out for non-text formats
 		fmt.Println(RenderStatsSummary())
 	}
 }
@@ -44,7 +45,7 @@ func generateDomainPermutations(keywords []string) []string {
 	for _, tld_candidate := range Config.TLDs {
 		tld, ok := publicsuffix.PublicSuffix(strings.ToLower(tld_candidate))
 		if !ok {
-			if !Config.OnlyAvailable {
+			if !Config.OnlyAvailable && Config.OutputFormat == "text" {
 				fmt.Println(Errored(tld_candidate, errors.New("invalid TLD")))
 			}
 			continue
@@ -64,7 +65,10 @@ func generateDomainPermutations(keywords []string) []string {
 		} else if tlds, ok := presets.TLDs.Get(tldPreset); ok {
 			additionalTlds = tlds
 		} else {
-			fmt.Println("Error: TLD preset not found:", tldPreset)
+			if Config.OutputFormat == "text" {
+				// TODO: pipe this out for non-text formats
+				fmt.Println("Error: TLD preset not found:", tldPreset)
+			}
 		}
 		tlds = append(tlds, additionalTlds...)
 
@@ -157,16 +161,4 @@ func removeDuplicates(strs []string) []string {
 		}
 	}
 	return list
-}
-
-func PrintDomain(domain string, available bool, err error) {
-	if err != nil {
-		fmt.Println(Errored(domain, err))
-		return
-	}
-	if available {
-		fmt.Println(Available(domain))
-	} else {
-		fmt.Println(NotAvailable(domain))
-	}
 }

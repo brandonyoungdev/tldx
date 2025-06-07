@@ -25,6 +25,7 @@ type ResolverService struct {
 type DomainResult struct {
 	Domain    string `json:"domain"`
 	Available bool   `json:"available"`
+	Details   string `json:"details,omitempty"`
 	Error     error  `json:"error,omitempty"`
 }
 
@@ -126,7 +127,7 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 		if strings.Contains(err.Error(), "object does not exist.") || strings.Contains(err.Error(), "404") {
 			return CheckResult{
 				Registered: false,
-				Details:    fmt.Sprintf("RDAP is not found or doesn't exist for domain %s:", domain),
+				Details:    fmt.Sprintf("RDAP is not found or doesn't exist"),
 			}, nil
 		}
 
@@ -137,9 +138,6 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 	}
 
 	if domainResponse == nil {
-		if s.config.Verbose {
-			fmt.Println("RDAP response is nil for domain:", domain)
-		}
 		return CheckResult{
 			Registered: false,
 			Details:    fmt.Sprintf("No RDAP available for %s", domain),
@@ -148,7 +146,7 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 
 	return CheckResult{
 		Registered: true,
-		Details:    fmt.Sprintf("Status: %s", domainResponse.Status),
+		Details:    fmt.Sprintf("Rdap registered: %s", domainResponse.Status),
 	}, nil
 }
 
@@ -255,10 +253,11 @@ func (s ResolverService) checkDomainsStreaming(domains []string, concurrency int
 				ctx, cancel := context.WithTimeout(context.Background(), timeout)
 				defer cancel()
 
-				available, err := s.CheckDomain(ctx, domain)
+				checkResult, err := s.CheckDomain(ctx, domain)
 				resultChan <- DomainResult{
 					Domain:    domain,
-					Available: !available.Registered,
+					Available: !checkResult.Registered,
+					Details:   checkResult.Details,
 					Error:     err,
 				}
 			}()

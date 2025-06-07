@@ -24,6 +24,7 @@ func GetOutputWriter(format string) ResultOutput {
 	case "text":
 		return &TextOutput{}
 	default:
+		// This is okay, since it'll output text by default.
 		fmt.Println("Unknown output format. Defaulting to text.")
 		return &TextOutput{}
 	}
@@ -38,10 +39,10 @@ func (o *TextOutput) Write(result DomainResult) {
 			fmt.Println(Errored(result.Domain, result.Error))
 		}
 	case result.Available:
-		fmt.Println(Available(result.Domain))
+		fmt.Println(Available(result))
 	default:
 		if !Config.OnlyAvailable {
-			fmt.Println(NotAvailable(result.Domain))
+			fmt.Println(NotAvailable(result))
 		}
 	}
 }
@@ -54,7 +55,7 @@ type CSVOutput struct {
 
 func NewCSVOutput() *CSVOutput {
 	w := csv.NewWriter(os.Stdout)
-	w.Write([]string{"domain", "available", "error"})
+	w.Write([]string{"domain", "available", "details", "error"})
 	return &CSVOutput{writer: w}
 }
 
@@ -63,7 +64,7 @@ func (o *CSVOutput) Write(result DomainResult) {
 	if result.Error != nil {
 		errMsg = result.Error.Error()
 	}
-	o.writer.Write([]string{result.Domain, fmt.Sprintf("%v", result.Available), errMsg})
+	o.writer.Write([]string{result.Domain, fmt.Sprintf("%v", result.Available), result.Details, errMsg})
 }
 
 func (o *CSVOutput) Flush() {
