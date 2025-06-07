@@ -211,10 +211,19 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 		}, nil
 	}
 
+	registrar := "<unknown>"
+	created := "<unknown>"
+
+	if parsed.Registrar != nil && parsed.Registrar.Name != "" {
+		registrar = parsed.Registrar.Name
+	}
+	if parsed.Domain != nil && parsed.Domain.CreatedDate != "" {
+		created = parsed.Domain.CreatedDate
+	}
+
 	return CheckResult{
 		Registered: true,
-		Details: fmt.Sprintf("WHOIS Registered: %s (%s)",
-			parsed.Registrar.Name, parsed.Domain.CreatedDate),
+		Details:    fmt.Sprintf("WHOIS Registered: %s (%s)", registrar, created),
 	}, nil
 }
 
