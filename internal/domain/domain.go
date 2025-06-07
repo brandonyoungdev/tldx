@@ -27,6 +27,9 @@ func Exec(domainsOrKeywords []string) {
 		} else {
 			stats.notAvailable++
 		}
+		if Config.OnlyAvailable && !result.Available {
+			continue
+		}
 		output.Write(result)
 	}
 
