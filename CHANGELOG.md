@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/brandonyoungdev/tldx/compare/v1.2.0...v1.2.1) (2025-06-07)
+
+
+### Bug Fixes
+
+* segfault && better error messaging for non-text outputs ([#35](https://github.com/brandonyoungdev/tldx/issues/35)) ([b423e3f](https://github.com/brandonyoungdev/tldx/commit/b423e3ff823a44f4be7bf1754efb4fb469649472))
+
 # [1.2.0](https://github.com/brandonyoungdev/tldx/compare/v1.1.1...v1.2.0) (2025-06-06)
 
 
