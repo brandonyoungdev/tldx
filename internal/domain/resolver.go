@@ -25,6 +25,7 @@ type ResolverService struct {
 type DomainResult struct {
 	Domain    string `json:"domain"`
 	Available bool   `json:"available"`
+	Details   string `json:"details,omitempty"`
 	Error     error  `json:"error,omitempty"`
 }
 
@@ -126,29 +127,26 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 		if strings.Contains(err.Error(), "object does not exist.") || strings.Contains(err.Error(), "404") {
 			return CheckResult{
 				Registered: false,
-				Details:    fmt.Sprintf("RDAP is not found or doesn't exist for domain %s:", domain),
+				Details:    fmt.Sprintf("RDAP is not found or doesn't exist"),
 			}, nil
 		}
 
 		return CheckResult{
 			Registered: true,
-			Details:    fmt.Sprintf("RDAP query error for domain %s:", domain),
+			Details:    fmt.Sprintf("RDAP query error"),
 		}, err
 	}
 
 	if domainResponse == nil {
-		if s.config.Verbose {
-			fmt.Println("RDAP response is nil for domain:", domain)
-		}
 		return CheckResult{
 			Registered: false,
-			Details:    fmt.Sprintf("No RDAP available for %s", domain),
+			Details:    fmt.Sprintf("No RDAP response available"),
 		}, nil
 	}
 
 	return CheckResult{
 		Registered: true,
-		Details:    fmt.Sprintf("Status: %s", domainResponse.Status),
+		Details:    fmt.Sprintf("Rdap registered: %s", domainResponse.Status),
 	}, nil
 }
 
@@ -211,10 +209,19 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 		}, nil
 	}
 
+	registrar := "<unknown>"
+	created := "<unknown>"
+
+	if parsed.Registrar != nil && parsed.Registrar.Name != "" {
+		registrar = parsed.Registrar.Name
+	}
+	if parsed.Domain != nil && parsed.Domain.CreatedDate != "" {
+		created = parsed.Domain.CreatedDate
+	}
+
 	return CheckResult{
 		Registered: true,
-		Details: fmt.Sprintf("WHOIS Registered: %s (%s)",
-			parsed.Registrar.Name, parsed.Domain.CreatedDate),
+		Details:    fmt.Sprintf("WHOIS Registered: %s (%s)", registrar, created),
 	}, nil
 }
 
@@ -246,10 +253,11 @@ func (s ResolverService) checkDomainsStreaming(domains []string, concurrency int
 				ctx, cancel := context.WithTimeout(context.Background(), timeout)
 				defer cancel()
 
-				available, err := s.CheckDomain(ctx, domain)
+				checkResult, err := s.CheckDomain(ctx, domain)
 				resultChan <- DomainResult{
 					Domain:    domain,
-					Available: !available.Registered,
+					Available: !checkResult.Registered,
+					Details:   checkResult.Details,
 					Error:     err,
 				}
 			}()
@@ -281,11 +289,11 @@ func (s ResolverService) QueryDomainContext(ctx context.Context, domain string) 
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch RDAP data for domain %q: %w", domain, err)
+		return nil, fmt.Errorf("failed to fetch RDAP data: %w", err)
 	}
 
 	if _, ok := resp.Object.(*rdap.Domain); !ok {
-		return nil, fmt.Errorf("unexpected RDAP object type for domain %q", domain)
+		return nil, fmt.Errorf("unexpected RDAP object type")
 	}
 
 	return resp.Object.(*rdap.Domain), nil
