@@ -133,14 +133,14 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 
 		return CheckResult{
 			Registered: true,
-			Details:    fmt.Sprintf("RDAP query error for domain %s:", domain),
+			Details:    fmt.Sprintf("RDAP query error"),
 		}, err
 	}
 
 	if domainResponse == nil {
 		return CheckResult{
 			Registered: false,
-			Details:    fmt.Sprintf("No RDAP available for %s", domain),
+			Details:    fmt.Sprintf("No RDAP response available"),
 		}, nil
 	}
 
@@ -289,11 +289,11 @@ func (s ResolverService) QueryDomainContext(ctx context.Context, domain string) 
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch RDAP data for domain %q: %w", domain, err)
+		return nil, fmt.Errorf("failed to fetch RDAP data: %w", err)
 	}
 
 	if _, ok := resp.Object.(*rdap.Domain); !ok {
-		return nil, fmt.Errorf("unexpected RDAP object type for domain %q", domain)
+		return nil, fmt.Errorf("unexpected RDAP object type")
 	}
 
 	return resp.Object.(*rdap.Domain), nil

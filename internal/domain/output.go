@@ -64,11 +64,24 @@ func (o *CSVOutput) Write(result DomainResult) {
 	if result.Error != nil {
 		errMsg = result.Error.Error()
 	}
-	o.writer.Write([]string{result.Domain, fmt.Sprintf("%v", result.Available), result.Details, errMsg})
+
+	record := []string{
+		result.Domain,
+		fmt.Sprintf("%v", result.Available),
+		result.Details,
+		errMsg,
+	}
+
+	if err := o.writer.Write(record); err != nil {
+		fmt.Fprintf(os.Stderr, "error writing CSV record: %v\n", err)
+	}
 }
 
 func (o *CSVOutput) Flush() {
 	o.writer.Flush()
+	if err := o.writer.Error(); err != nil {
+		fmt.Fprintf(os.Stderr, "error flushing CSV writer: %v\n", err)
+	}
 }
 
 type JSONStreamOutput struct{}
