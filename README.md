@@ -27,6 +27,7 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
   - [Domain Availability](#domain-availability)
   - [Presets](#presets)
   - [Permutations](#permutations)
+  - [Brace Expansion (macOS, Linux)](#brace-expansion-macos-linux)
   - [Show Only Available Domains](#show-only-available-domains)
   - [Output Formats](#output-formats)
 - [📦 Installation](#-installation)
@@ -134,6 +135,22 @@ $ tldx google --prefixes get,my --suffixes ly,hub --tlds com,io,ai
   ❌ mygoogle.ai is not available
   ...
 ```
+
+
+### Brace Expansion (macOS, Linux)
+
+[Brace expansion](https://www.gnu.org/software/bash/manual/html_node/Brace-Expansion.html) is a built-in feature of most Unix shells (e.g., bash, zsh). You can use it like this:
+
+```sh
+tldx {get,use}{tldx,domains} {star,fork}ongithub
+  ✔️ gettldx.com is available
+  ✔️ starongithub.com is available
+  ✔️ forkongithub.com is available
+  ❌ getdomains.com is not available
+  ✔️ usetldx.com is available
+  ❌ usedomains.com is not available
+```
+
 
 ### Show Only Available Domains
 
