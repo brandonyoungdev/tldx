@@ -2,49 +2,49 @@ package domain
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
 func Available(domain DomainResult) string {
-	style := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#00FF00")). // Light green color
-		PaddingLeft(2).
-		Render
-
+	text := fmt.Sprintf("✅ %s is available", domain.Domain)
 	if Config.Verbose {
-		return style(fmt.Sprintf("✅ %s is available - %v", domain.Domain, domain.Details))
+		text = fmt.Sprintf("✅ %s is available - %v", domain.Domain, domain.Details)
 	}
-
-	// Use the style to format the output
-	return style(fmt.Sprintf("✅ %s is available", domain.Domain))
+	return Styled(text, "#00FF00")
 }
 
 func NotAvailable(domain DomainResult) string {
-	style := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#FF0000")). // Light red color
-		PaddingLeft(2).
-		Render
-
+	text := fmt.Sprintf("❌ %s is not available", domain.Domain)
 	if Config.Verbose {
-		return style(fmt.Sprintf("❌ %s is not available - %v", domain.Domain, domain.Details))
+		text = fmt.Sprintf("❌ %s is not available - %v", domain.Domain, domain.Details)
 	}
-
-	// Use the style to format the output
-	return style(fmt.Sprintf("❌ %s is not available", domain.Domain))
+	return Styled(text, "#FF0000")
 }
 
 func Errored(domain string, err error) string {
+	text := fmt.Sprintf("⚠️  %s: %s", domain, err)
+	return Styled(text, "#FFFF00")
+}
+
+func Styled(text string, color string) string {
+	if IsNoColor() {
+		return text
+	}
+
 	style := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FFFF00")). // Yellow color
-		PaddingLeft(2).
-		Render
-	// Use the style to format the output
-	emoji := "⚠️"
+		Foreground(lipgloss.Color(color)).
+		PaddingLeft(2)
 
-	return style(fmt.Sprintf("%s  %s: %s", emoji, domain, err))
+	return style.Render(text)
+}
 
+func IsNoColor() bool {
+	if Config.NoColor {
+		return true
+	}
+	_, exists := os.LookupEnv("NO_COLOR")
+	return exists
 }

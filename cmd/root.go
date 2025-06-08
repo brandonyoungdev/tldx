@@ -21,7 +21,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&domain.Config.ShowStats, "show-stats", false, "Show statistics at the end of execution")
 	rootCmd.Flags().StringVar(&domain.Config.TLDPreset, "tld-preset", "", "Use a tld preset (e.g. popular, tech)")
 	rootCmd.Flags().StringVarP(&domain.Config.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv)")
-
+	rootCmd.Flags().BoolVar(&domain.Config.NoColor, "no-color", false, "Disable colored output")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(showPresetsCmd)
 }

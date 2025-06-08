@@ -29,9 +29,29 @@ type DomainResult struct {
 	Error     error  `json:"error,omitempty"`
 }
 
+type EncodableDomainResult struct {
+	Domain    string `json:"domain"`
+	Available bool   `json:"available"`
+	Details   string `json:"details,omitempty"`
+	Error     string `json:"error,omitempty"`
+}
+
 type CheckResult struct {
 	Registered bool
 	Details    string
+}
+
+func (result DomainResult) asEncodable() EncodableDomainResult {
+	errMsg := ""
+	if result.Error != nil {
+		errMsg = result.Error.Error()
+	}
+	return EncodableDomainResult{
+		Domain:    result.Domain,
+		Available: result.Available,
+		Details:   result.Details,
+		Error:     errMsg,
+	}
 }
 
 type Resolver interface {
