@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/brandonyoungdev/tldx/compare/v1.2.1...v1.2.2) (2025-06-08)
+
+
+### Bug Fixes
+
+* no-color-support ([#38](https://github.com/brandonyoungdev/tldx/issues/38)) ([485c62e](https://github.com/brandonyoungdev/tldx/commit/485c62ecc8e11f3de886d0f0d9e60caf11440cc0))
+
 ## [1.2.1](https://github.com/brandonyoungdev/tldx/compare/v1.2.0...v1.2.1) (2025-06-07)
 
 
