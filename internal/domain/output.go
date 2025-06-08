@@ -87,25 +87,25 @@ func (o *CSVOutput) Flush() {
 type JSONStreamOutput struct{}
 
 func (o *JSONStreamOutput) Write(result DomainResult) {
-	json.NewEncoder(os.Stdout).Encode(result)
+	json.NewEncoder(os.Stdout).Encode(result.asEncodable())
 }
 
 func (o *JSONStreamOutput) Flush() {}
 
 type JsonArrayOutput struct {
-	results []DomainResult
+	results []EncodableDomainResult
 	writer  io.Writer
 }
 
 func NewJsonArrayOutput(w io.Writer) *JsonArrayOutput {
 	return &JsonArrayOutput{
-		results: make([]DomainResult, 0, 100),
+		results: make([]EncodableDomainResult, 0, 100),
 		writer:  w,
 	}
 }
 
 func (o *JsonArrayOutput) Write(result DomainResult) {
-	o.results = append(o.results, result)
+	o.results = append(o.results, result.asEncodable())
 }
 
 func (o *JsonArrayOutput) Flush() {
