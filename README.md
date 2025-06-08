@@ -64,6 +64,7 @@ Flags:
   -f, --format string           Format of output (text, json, json-stream, json-array, csv) (default "text")
   -h, --help                    help for tldx
   -m, --max-domain-length int   Maximum length of domain name (default 64)
+      --no-color                Disable colored output
   -a, --only-available          Show only available domains
   -p, --prefixes strings        Prefixes to add (e.g. get,my,use)
       --show-stats              Show statistics at the end of execution

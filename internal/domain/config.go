@@ -12,6 +12,7 @@ type ConfigOptions struct {
 	OnlyAvailable   bool
 	ShowStats       bool
 	OutputFormat    string
+	NoColor         bool
 }
 
 const (
