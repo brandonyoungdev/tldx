@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/brandonyoungdev/tldx/compare/v1.2.2...v1.2.3) (2025-06-11)
+
+
+### Bug Fixes
+
+* casing for domain/keyword logic ([#42](https://github.com/brandonyoungdev/tldx/issues/42)) ([1adb5a9](https://github.com/brandonyoungdev/tldx/commit/1adb5a9c7ef635f4440d6ebda2561afac7a6e9b6))
+
 ## [1.2.2](https://github.com/brandonyoungdev/tldx/compare/v1.2.1...v1.2.2) (2025-06-08)
 
 
