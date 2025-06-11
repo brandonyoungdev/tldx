@@ -11,6 +11,7 @@ import (
 )
 
 func Exec(domainsOrKeywords []string) {
+	domainsOrKeywords = allToLowerCase(domainsOrKeywords)
 	keywords := validateKeywords(domainsOrKeywords)
 	domains := generateDomainPermutations(keywords)
 	stats.total = len(domains)
@@ -164,4 +165,11 @@ func removeDuplicates(strs []string) []string {
 		}
 	}
 	return list
+}
+
+func allToLowerCase(strs []string) []string {
+	for i, str := range strs {
+		strs[i] = strings.ToLower(str)
+	}
+	return strs
 }
