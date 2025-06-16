@@ -206,7 +206,7 @@ openai.io,false,
 ## 📦 Installation
 #### macOS (Homebrew)
 ```sh
-brew install brandonyoungdev/tldx/tldx
+brew install tldx
 ```
 or
 ```sh
