@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
 
 	"github.com/brandonyoungdev/tldx/internal/domain"
+	"github.com/charmbracelet/fang"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +24,6 @@ func init() {
 	rootCmd.Flags().StringVar(&domain.Config.TLDPreset, "tld-preset", "", "Use a tld preset (e.g. popular, tech)")
 	rootCmd.Flags().StringVarP(&domain.Config.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv)")
 	rootCmd.Flags().BoolVar(&domain.Config.NoColor, "no-color", false, "Disable colored output")
-	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(showPresetsCmd)
 }
 
@@ -48,7 +49,11 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := fang.Execute(
+		context.TODO(),
+		rootCmd,
+		fang.WithVersion(version),
+	); err != nil {
 		os.Exit(1)
 	}
 }
