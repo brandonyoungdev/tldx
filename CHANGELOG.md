@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/brandonyoungdev/tldx/compare/v1.2.3...v1.2.4) (2025-06-22)
+
+
+### Bug Fixes
+
+* version for homebrew-core ([#46](https://github.com/brandonyoungdev/tldx/issues/46)) ([d98ec00](https://github.com/brandonyoungdev/tldx/commit/d98ec000224580ad2b4fa1ef73073ff243399b3d))
+
 ## [1.2.3](https://github.com/brandonyoungdev/tldx/compare/v1.2.2...v1.2.3) (2025-06-11)
 
 
