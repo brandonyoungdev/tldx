@@ -58,7 +58,6 @@ Available Commands:
   completion       Generate the autocompletion script for the specified shell
   help             Help about any command
   show-tld-presets Show available TLD presets
-  version          Print the version
 
 Flags:
   -f, --format string           Format of output (text, json, json-stream, json-array, csv) (default "text")
@@ -72,6 +71,7 @@ Flags:
       --tld-preset string       Use a tld preset (e.g. popular, tech)
   -t, --tlds strings            TLDs to check (e.g. com,io,ai)
   -v, --verbose                 Show verbose output
+      --version                 version for tldx
 ```
 
 

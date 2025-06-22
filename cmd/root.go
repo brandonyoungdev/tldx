@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "dev"
+var Version = "dev"
 
 func init() {
 	rootCmd.Flags().StringSliceVarP(&domain.Config.TLDs, "tlds", "t", []string{}, "TLDs to check (e.g. com,io,ai)")
@@ -22,14 +22,14 @@ func init() {
 	rootCmd.Flags().StringVar(&domain.Config.TLDPreset, "tld-preset", "", "Use a tld preset (e.g. popular, tech)")
 	rootCmd.Flags().StringVarP(&domain.Config.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv)")
 	rootCmd.Flags().BoolVar(&domain.Config.NoColor, "no-color", false, "Disable colored output")
-	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(showPresetsCmd)
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "tldx [keywords]",
-	Short: "Domain availability checker and ideation tool",
-	Args:  cobra.MinimumNArgs(1),
+	Use:     "tldx [keywords]",
+	Short:   "Domain availability checker and ideation tool",
+	Version: Version,
+	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if domain.Config.MaxDomainLength <= 0 {
 			slog.Error("Invalid max-domain-length provided. Pick a positive number please.")
