@@ -2,8 +2,7 @@ package presets
 
 var DefaultTLDPresets = map[string][]string{
 	"popular": {
-		"com", "net", "org", "co", "io", "me", "dev", "app", "ai",
-		"xyz", "online", "site", "info", "blog",	
+		"com", "net", "org", "co", "io", "me", "dev", "app", "ai",	
 	},
 	"tech": {
 		"io", "dev", "app", "ai", "cloud", "tech", "software", "systems",
@@ -20,7 +19,7 @@ var DefaultTLDPresets = map[string][]string{
 	},
 	"cheap": {
 		"xyz", "icu", "site", "online", "space", "fun", "store", "shop", "click",
-		"bond", "pw",'
+		"bond", "pw", "xyz", "online", "site", "info", "blog",
 	},
 	"luxury": {
 		"luxury", "vip", "rich", "club", "jewelry", "gold",
