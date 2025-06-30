@@ -133,7 +133,7 @@ This permutates the keywords with the specified prefixes, suffixes, and TLDs, ch
 $ tldx google --prefixes get,my --suffixes ly,hub --tlds com,io,ai
   ✔️  mygooglely.com is available
   ✔️  getgooglely.ai is available
-  ❌ mygoogle.ai is not available
+  ❌  mygoogle.ai is not available
   ...
 ```
 
