@@ -1,6 +1,8 @@
 name: Add release preview comment
 
-on: [pull_request]
+on:
+  pull_request:
+    branches: [main]
 
 jobs:
   release-comment:
