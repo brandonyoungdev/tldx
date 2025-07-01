@@ -12,7 +12,7 @@ func Available(domain DomainResult) string {
 	if Config.Verbose {
 		text = fmt.Sprintf("✅ %s is available - %v", domain.Domain, domain.Details)
 	}
-	return Styled(text, "#00FF00")
+	return Styled(text, "10") // green
 }
 
 func NotAvailable(domain DomainResult) string {
@@ -20,12 +20,12 @@ func NotAvailable(domain DomainResult) string {
 	if Config.Verbose {
 		text = fmt.Sprintf("❌ %s is not available - %v", domain.Domain, domain.Details)
 	}
-	return Styled(text, "#FF0000")
+	return Styled(text, "9") // red
 }
 
 func Errored(domain string, err error) string {
 	text := fmt.Sprintf("⚠️  %s: %s", domain, err)
-	return Styled(text, "#FFFF00")
+	return Styled(text, "11") // Yellow
 }
 
 func Styled(text string, color string) string {
