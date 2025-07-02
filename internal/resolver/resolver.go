@@ -135,7 +135,7 @@ func (s *ResolverService) CheckDomain(ctx context.Context, domain string) (Check
 		return rdapResult, nil
 	}
 
-	if strings.Contains(err.Error(), "No RDAP servers found for") {
+	if strings.Contains(err.Error(), "No RDAP servers") {
 		// dns fallback
 		dnsResolved, _ := s.checkIfDNSResolves(ctx, domain)
 
