@@ -9,12 +9,11 @@ import (
 )
 
 func TestRootCommandRuns(t *testing.T) {
-	app := &config.TldxContext{
-		Config: &config.ConfigOptions{},
-	}
+	app := config.NewTldxContext()
 
 	cmd := cmd.NewRootCmd(app)
 	cmd.SetArgs([]string{"google"})
+
 	err := cmd.Execute()
 	assert.NoError(t, err)
 }
