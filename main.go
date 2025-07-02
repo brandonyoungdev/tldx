@@ -8,9 +8,7 @@ import (
 )
 
 func main() {
-	ctx := &config.TldxContext{
-		Config: &config.TldxConfigOptions{},
-	}
+	ctx := config.NewTldxContext()
 
 	rootCmd := cmd.NewRootCmd(ctx)
 	if err := rootCmd.Execute(); err != nil {
