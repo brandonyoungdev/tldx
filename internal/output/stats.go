@@ -2,7 +2,6 @@ package output
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -20,38 +19,47 @@ var Stat = Stats{}
 func RenderStatsSummary() string {
 	baseStyle := lipgloss.NewStyle().Bold(true)
 
-	numberWidth := 4
+	// Widths for number and label padding
+	numberWidth := 2
+	labelWidth := 14
 
-	header := baseStyle.
-		Foreground(lipgloss.Color("14")). // Bright Blue
-		Render(fmt.Sprintf("%*d searched", numberWidth, Stat.Total))
+	// Color helper
+	color := func(c string) lipgloss.Style {
+		return baseStyle.Foreground(lipgloss.Color(c))
+	}
 
-	available := baseStyle.
-		Foreground(lipgloss.Color("10")). // Bright green
-		Render(fmt.Sprintf("%*d available", numberWidth, Stat.Available))
+	type statRow struct {
+		emoji string
+		count int
+		label string
+		color string
+	}
 
-	notAvailable := baseStyle.
-		Foreground(lipgloss.Color("9")). // Red
-		Render(fmt.Sprintf("%*d taken", numberWidth, Stat.NotAvailable))
+	stats := []statRow{
+		{"🔍", Stat.Total, "searched", "14"},      // Bright Blue
+		{"✅", Stat.Available, "available", "10"}, // Bright Green
+		{"❌", Stat.NotAvailable, "taken", "9"},   // Red
+		{"⏳", Stat.TimedOut, "timed out", "12"},  // Intense Yellow
+		{"🟡", Stat.Errored, "errored", "3"},      // Yellow
+	}
 
-	timedOut := baseStyle.
-		Foreground(lipgloss.Color("12")). // Intense Yellow
-		Render(fmt.Sprintf("%*d timed out", numberWidth, Stat.TimedOut))
+	var blocks []string
+	for _, stat := range stats {
+		// emoji + space + padded number + space + padded label
+		formatted := fmt.Sprintf(
+			"%s%*d %-*s",
+			stat.emoji,
+			numberWidth,
+			stat.count,
+			labelWidth,
+			stat.label,
+		)
+		blocks = append(blocks, color(stat.color).Render(formatted))
+	}
 
-	errored := baseStyle.
-		Foreground(lipgloss.Color("3")). // Standard Yellow
-		Render(fmt.Sprintf("%*d errored", numberWidth, Stat.Errored))
+	content := lipgloss.JoinHorizontal(lipgloss.Top, blocks...)
 
-	// Compose a single line
-	content := strings.Join([]string{
-		header,
-		available,
-		notAvailable,
-		timedOut,
-		errored,
-	}, "  ")
-
-	// Wrap in a border
+	// Wrap in border
 	border := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		Padding(0, 1).
