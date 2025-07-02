@@ -14,6 +14,7 @@
 tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 ✔️ getopenaily.com is available
 ✔️ useopenaihub.io is available
+  ...
 ```
 
 
