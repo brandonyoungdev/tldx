@@ -1,4 +1,4 @@
-package domain
+package resolver
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/brandonyoungdev/tldx/internal/config"
+	"github.com/brandonyoungdev/tldx/internal/validate"
 	"github.com/likexian/whois"
 	whoisparser "github.com/likexian/whois-parser"
 	"github.com/openrdap/rdap"
@@ -19,7 +21,7 @@ import (
 
 type ResolverService struct {
 	httpClient *http.Client
-	config     *ConfigOptions
+	app        *config.TldxContext
 }
 
 type DomainResult struct {
@@ -41,7 +43,7 @@ type CheckResult struct {
 	Details    string
 }
 
-func (result DomainResult) asEncodable() EncodableDomainResult {
+func (result DomainResult) AsEncodable() EncodableDomainResult {
 	errMsg := ""
 	if result.Error != nil {
 		errMsg = result.Error.Error()
@@ -58,18 +60,18 @@ type Resolver interface {
 	Check(domain string) (*CheckResult, error)
 }
 
-func NewResolverService() *ResolverService {
+func NewResolverService(app *config.TldxContext) *ResolverService {
 	return &ResolverService{
-		config:     &Config,
+		app:        app,
 		httpClient: &http.Client{},
 	}
 }
 
 func (s *ResolverService) withRetry(ctx context.Context, fn func() (CheckResult, error)) (CheckResult, error) {
 	var lastErr error
-	backoff := initialBackoff
+	backoff := s.app.Config.InitialBackoff
 
-	for attempt := 0; attempt <= maxRetries; attempt++ {
+	for attempt := 0; attempt <= s.app.Config.MaxRetries; attempt++ {
 		select {
 		case <-ctx.Done():
 			return CheckResult{}, ctx.Err()
@@ -79,10 +81,10 @@ func (s *ResolverService) withRetry(ctx context.Context, fn func() (CheckResult,
 				return result, nil
 			}
 			lastErr = err
-			if attempt < maxRetries {
-				jitter := time.Duration(float64(backoff) * (1 + (rand.Float64()*2-1)*jitterFraction))
+			if attempt < s.app.Config.MaxRetries {
+				jitter := time.Duration(float64(backoff) * (1 + (rand.Float64()*2-1)*s.app.Config.JitterFraction))
 				time.Sleep(jitter)
-				backoff = time.Duration(float64(backoff) * backoffFactor)
+				backoff = time.Duration(float64(backoff) * s.app.Config.BackoffFactor)
 			}
 		}
 	}
@@ -91,7 +93,7 @@ func (s *ResolverService) withRetry(ctx context.Context, fn func() (CheckResult,
 }
 
 func (s *ResolverService) CheckDomain(ctx context.Context, domain string) (CheckResult, error) {
-	if !isValidDomainOrKeyword(domain) {
+	if !validate.IsValidDomainOrKeyword(domain) {
 		return CheckResult{}, errors.New("invalid domain")
 	}
 
@@ -245,7 +247,7 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 	}, nil
 }
 
-func (s ResolverService) checkDomainsStreaming(domains []string, concurrency int, timeout time.Duration) <-chan DomainResult {
+func (s ResolverService) CheckDomainsStreaming(domains []string, concurrency int, timeout time.Duration) <-chan DomainResult {
 	resultChan := make(chan DomainResult)
 	inputChan := make(chan string)
 
@@ -294,7 +296,7 @@ func (s ResolverService) QueryDomainContext(ctx context.Context, domain string) 
 	req := &rdap.Request{
 		Type:    rdap.DomainRequest,
 		Query:   domain,
-		Timeout: contextTimeout,
+		Timeout: s.app.Config.ContextTimeout,
 	}
 
 	req = req.WithContext(ctx)

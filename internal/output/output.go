@@ -1,4 +1,4 @@
-package domain
+package output
 
 import (
 	"encoding/csv"
@@ -6,15 +6,18 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/brandonyoungdev/tldx/internal/config"
+	"github.com/brandonyoungdev/tldx/internal/resolver"
 )
 
 type ResultOutput interface {
-	Write(result DomainResult)
+	Write(result resolver.DomainResult)
 	Flush()
 }
 
-func GetOutputWriter(format string) ResultOutput {
-	switch format {
+func GetOutputWriter(app *config.TldxContext) ResultOutput {
+	switch app.Config.OutputFormat {
 	case "json-stream":
 		return &JSONStreamOutput{}
 	case "json-array", "json":
@@ -22,27 +25,37 @@ func GetOutputWriter(format string) ResultOutput {
 	case "csv":
 		return NewCSVOutput()
 	case "text":
-		return &TextOutput{}
+		return NewTextOutput(app)
 	default:
 		// This is okay, since it'll output text by default.
 		fmt.Println("Unknown output format. Defaulting to text.")
-		return &TextOutput{}
+		return NewTextOutput(app)
 	}
 }
 
-type TextOutput struct{}
+type TextOutput struct {
+	app          *config.TldxContext
+	styleService *StyleService
+}
 
-func (o *TextOutput) Write(result DomainResult) {
+func NewTextOutput(app *config.TldxContext) *TextOutput {
+	return &TextOutput{
+		app:          app,
+		styleService: NewStyleService(app),
+	}
+}
+
+func (o *TextOutput) Write(result resolver.DomainResult) {
 	switch {
 	case result.Error != nil:
-		if !Config.OnlyAvailable || Config.Verbose {
-			fmt.Println(Errored(result.Domain, result.Error))
+		if !o.app.Config.OnlyAvailable || o.app.Config.Verbose {
+			fmt.Println(o.styleService.Errored(result.Domain, result.Error))
 		}
 	case result.Available:
-		fmt.Println(Available(result))
+		fmt.Println(o.styleService.Available(result))
 	default:
-		if !Config.OnlyAvailable {
-			fmt.Println(NotAvailable(result))
+		if !o.app.Config.OnlyAvailable {
+			fmt.Println(o.styleService.NotAvailable(result))
 		}
 	}
 }
@@ -59,7 +72,7 @@ func NewCSVOutput() *CSVOutput {
 	return &CSVOutput{writer: w}
 }
 
-func (o *CSVOutput) Write(result DomainResult) {
+func (o *CSVOutput) Write(result resolver.DomainResult) {
 	errMsg := ""
 	if result.Error != nil {
 		errMsg = result.Error.Error()
@@ -86,26 +99,26 @@ func (o *CSVOutput) Flush() {
 
 type JSONStreamOutput struct{}
 
-func (o *JSONStreamOutput) Write(result DomainResult) {
-	json.NewEncoder(os.Stdout).Encode(result.asEncodable())
+func (o *JSONStreamOutput) Write(result resolver.DomainResult) {
+	json.NewEncoder(os.Stdout).Encode(result.AsEncodable())
 }
 
 func (o *JSONStreamOutput) Flush() {}
 
 type JsonArrayOutput struct {
-	results []EncodableDomainResult
+	results []resolver.EncodableDomainResult
 	writer  io.Writer
 }
 
 func NewJsonArrayOutput(w io.Writer) *JsonArrayOutput {
 	return &JsonArrayOutput{
-		results: make([]EncodableDomainResult, 0, 100),
+		results: make([]resolver.EncodableDomainResult, 0, 100),
 		writer:  w,
 	}
 }
 
-func (o *JsonArrayOutput) Write(result DomainResult) {
-	o.results = append(o.results, result.asEncodable())
+func (o *JsonArrayOutput) Write(result resolver.DomainResult) {
+	o.results = append(o.results, result.AsEncodable())
 }
 
 func (o *JsonArrayOutput) Flush() {
