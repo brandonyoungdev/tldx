@@ -3,52 +3,50 @@ package cmd
 import (
 	"fmt"
 	"log/slog"
-	"os"
 
+	"github.com/brandonyoungdev/tldx/internal/config"
 	"github.com/brandonyoungdev/tldx/internal/domain"
 	"github.com/spf13/cobra"
 )
 
 var Version = "dev"
 
-func init() {
-	rootCmd.Flags().StringSliceVarP(&domain.Config.TLDs, "tlds", "t", []string{}, "TLDs to check (e.g. com,io,ai)")
-	rootCmd.Flags().StringSliceVarP(&domain.Config.Prefixes, "prefixes", "p", []string{}, "Prefixes to add (e.g. get,my,use)")
-	rootCmd.Flags().StringSliceVarP(&domain.Config.Suffixes, "suffixes", "s", []string{}, "Suffixes to add (e.g. ify,ly)")
-	rootCmd.Flags().BoolVarP(&domain.Config.Verbose, "verbose", "v", false, "Show verbose output")
-	rootCmd.Flags().BoolVarP(&domain.Config.OnlyAvailable, "only-available", "a", false, "Show only available domains")
-	rootCmd.Flags().IntVarP(&domain.Config.MaxDomainLength, "max-domain-length", "m", 64, "Maximum length of domain name")
-	rootCmd.Flags().BoolVar(&domain.Config.ShowStats, "show-stats", false, "Show statistics at the end of execution")
-	rootCmd.Flags().StringVar(&domain.Config.TLDPreset, "tld-preset", "", "Use a tld preset (e.g. popular, tech)")
-	rootCmd.Flags().StringVarP(&domain.Config.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv)")
-	rootCmd.Flags().BoolVar(&domain.Config.NoColor, "no-color", false, "Disable colored output")
-	rootCmd.AddCommand(showPresetsCmd)
-}
-
-var rootCmd = &cobra.Command{
-	Use:     "tldx [keywords]",
-	Short:   "Domain availability checker and ideation tool",
-	Version: Version,
-	Args:    cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		if domain.Config.MaxDomainLength <= 0 {
-			slog.Error("Invalid max-domain-length provided. Pick a positive number please.")
-			return
-		}
-		if domain.Config.OutputFormat == "" {
-			if domain.Config.Verbose {
-				// This is okay, since it'll output text by default.
-				fmt.Println("Unknown output format. Defaulting to text.")
+func NewRootCmd(app *config.TldxContext) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "tldx [keywords]",
+		Short:   "Domain availability checker and ideation tool",
+		Version: Version,
+		Args:    cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			if app.Config.MaxDomainLength <= 0 {
+				slog.Error("Invalid max-domain-length provided. Pick a positive number please.")
+				return
 			}
-			domain.Config.OutputFormat = "text"
-		}
+			if app.Config.OutputFormat == "" {
+				if app.Config.Verbose {
+					fmt.Println("Unknown output format. Defaulting to text.")
+				}
+				app.Config.OutputFormat = "text"
+			}
+			domain.Exec(app, args)
+		},
+	}
 
-		domain.Exec(args)
-	},
+	bindFlags(cmd, app)
+	cmd.AddCommand(NewShowPresetsCmd())
+	return cmd
 }
 
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+func bindFlags(cmd *cobra.Command, app *config.TldxContext) {
+	cfg := app.Config
+	cmd.Flags().StringSliceVarP(&cfg.TLDs, "tlds", "t", []string{}, "TLDs to check (e.g. com,io,ai)")
+	cmd.Flags().StringSliceVarP(&cfg.Prefixes, "prefixes", "p", []string{}, "Prefixes to add (e.g. get,my,use)")
+	cmd.Flags().StringSliceVarP(&cfg.Suffixes, "suffixes", "s", []string{}, "Suffixes to add (e.g. ify,ly)")
+	cmd.Flags().BoolVarP(&cfg.Verbose, "verbose", "v", false, "Show verbose output")
+	cmd.Flags().BoolVarP(&cfg.OnlyAvailable, "only-available", "a", false, "Show only available domains")
+	cmd.Flags().IntVarP(&cfg.MaxDomainLength, "max-domain-length", "m", 64, "Maximum length of domain name")
+	cmd.Flags().BoolVar(&cfg.ShowStats, "show-stats", false, "Show statistics at the end of execution")
+	cmd.Flags().StringVar(&cfg.TLDPreset, "tld-preset", "", "Use a tld preset (e.g. popular, tech)")
+	cmd.Flags().StringVarP(&cfg.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv)")
+	cmd.Flags().BoolVar(&cfg.NoColor, "no-color", false, "Disable colored output")
 }

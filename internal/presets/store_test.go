@@ -1,8 +1,10 @@
-package presets
+package presets_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/brandonyoungdev/tldx/internal/presets"
 )
 
 type TLDPreset []string
@@ -12,7 +14,7 @@ func TestPresetStore_Get(t *testing.T) {
 		"popular": {"com", "net", "org"},
 		"tech":    {"dev", "io"},
 	}
-	ps := NewTypedStore("TLD", builtin)
+	ps := presets.NewTypedStore("TLD", builtin)
 
 	t.Run("gets builtin preset", func(t *testing.T) {
 		preset, ok := ps.Get("popular")
@@ -37,7 +39,7 @@ func TestPresetStore_Override(t *testing.T) {
 	builtin := map[string]TLDPreset{
 		"popular": {"com", "net", "org"},
 	}
-	ps := NewTypedStore("TLD", builtin)
+	ps := presets.NewTypedStore("TLD", builtin)
 
 	override := TLDPreset{"xyz"}
 	ps.Override("popular", override)
@@ -56,7 +58,7 @@ func TestPresetStore_All(t *testing.T) {
 		"a": {"com"},
 		"b": {"net"},
 	}
-	ps := NewTypedStore("TLD", builtin)
+	ps := presets.NewTypedStore("TLD", builtin)
 	ps.Override("b", TLDPreset{"overridden"})
 	ps.Override("c", TLDPreset{"custom"})
 
@@ -73,7 +75,7 @@ func TestPresetStore_All(t *testing.T) {
 }
 
 func TestPresetStore_Kind(t *testing.T) {
-	ps := NewTypedStore("TLD", map[string]TLDPreset{})
+	ps := presets.NewTypedStore("TLD", map[string]TLDPreset{})
 	if ps.Kind != "TLD" {
 		t.Errorf("Expected kind to be 'TLD', got %s", ps.Kind)
 	}
