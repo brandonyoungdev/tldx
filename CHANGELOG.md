@@ -1,3 +1,10 @@
+## [1.2.5](https://github.com/brandonyoungdev/tldx/compare/v1.2.4...v1.2.5) (2025-07-02)
+
+
+### Bug Fixes
+
+* Tldx version 1.2.5 ([#64](https://github.com/brandonyoungdev/tldx/issues/64)) ([730e473](https://github.com/brandonyoungdev/tldx/commit/730e473951e40307b7d891f23ccbcd22dc36deb8)), closes [#52](https://github.com/brandonyoungdev/tldx/issues/52)
+
 ## [1.2.4](https://github.com/brandonyoungdev/tldx/compare/v1.2.3...v1.2.4) (2025-06-22)
 
 
