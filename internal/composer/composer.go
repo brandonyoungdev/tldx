@@ -29,7 +29,7 @@ func (s *ComposerService) Compile(domainsOrKeywords []string) ([]string, []error
 	// Add any new TLDs found in keywords to the config
 	s.app.Config.TLDs = append(s.app.Config.TLDs, validatedKeywords.NewTlds...)
 
-	domains, warnings := s.generateDomainPermutations(validatedKeywords.Keywords)
+	domains, warnings := s.GenerateDomainPermutations(validatedKeywords.Keywords)
 
 	if s.app.Config.MaxDomainLength > 0 {
 		domains = strutil.FilterByMaxLength(domains, s.app.Config.MaxDomainLength)
@@ -38,7 +38,7 @@ func (s *ComposerService) Compile(domainsOrKeywords []string) ([]string, []error
 	return domains, warnings
 }
 
-func (s *ComposerService) generateDomainPermutations(keywords []string) ([]string, []error) {
+func (s *ComposerService) GenerateDomainPermutations(keywords []string) ([]string, []error) {
 	var result []string
 	var tlds []string
 	var warnings []error
