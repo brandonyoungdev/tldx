@@ -42,10 +42,9 @@ func ValidateKeywords(domainsOrKeywords []string) *ValidatedKeywords {
 	}
 }
 
-func IsValidDomainOrKeyword(domainOrKeyword string) bool {
-	// Regular expression to validate each label
-	labelRegexp := regexp.MustCompile(`^(?i)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
+var labelRegexp = regexp.MustCompile(`^(?i)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
 
+func IsValidDomainOrKeyword(domainOrKeyword string) bool {
 	// Split domain into labels
 	labels := strings.Split(domainOrKeyword, ".")
 	for _, label := range labels {
