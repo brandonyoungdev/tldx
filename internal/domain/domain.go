@@ -13,18 +13,17 @@ func Exec(app *config.TldxContext, domainsOrKeywords []string) {
 
 	composerService := composer.NewComposerService(app)
 	domains, warnings := composerService.Compile(domainsOrKeywords)
+	styleService := output.NewStyleService(app)
 	if warnings != nil && len(warnings) > 0 {
 		for _, warning := range warnings {
 			if !app.Config.OnlyAvailable && app.Config.OutputFormat == "text" {
-				//TODO: Print warnings from composer step from styles
-				// EX: invalid TLD
-				fmt.Println("This siafdjlksajd flkajs lk", warning)
+				fmt.Println(styleService.Styled(warning.Error(), "11")) // Yellow
 			}
 		}
 	}
 
 	resolverService := resolver.NewResolverService(app)
-	resultChan := resolverService.CheckDomainsStreaming(domains, app.Config.ConcurrencyLimit, app.Config.ContextTimeout)
+	resultChan := resolverService.CheckDomainsStreaming(domains)
 
 	outputWriter := output.GetOutputWriter(app)
 
