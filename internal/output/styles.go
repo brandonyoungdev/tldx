@@ -19,6 +19,10 @@ func NewStyleService(app *config.TldxContext) *StyleService {
 	}
 }
 
+func (s *StyleService) GroupTitle(tile string) string {
+	return s.Styled(tile, "white")
+}
+
 func (s *StyleService) Available(domain resolver.DomainResult) string {
 	text := fmt.Sprintf("✅ %s is available", domain.Domain)
 	if s.app.Config.Verbose {

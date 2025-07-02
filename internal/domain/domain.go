@@ -2,11 +2,15 @@ package domain
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/brandonyoungdev/tldx/internal/composer"
 	"github.com/brandonyoungdev/tldx/internal/config"
 	"github.com/brandonyoungdev/tldx/internal/output"
 	"github.com/brandonyoungdev/tldx/internal/resolver"
+	"github.com/charmbracelet/huh/spinner"
+	"github.com/charmbracelet/lipgloss"
 )
 
 func Exec(app *config.TldxContext, domainsOrKeywords []string) {
@@ -28,18 +32,47 @@ func Exec(app *config.TldxContext, domainsOrKeywords []string) {
 	outputWriter := output.GetOutputWriter(app)
 
 	output.Stat.Total = len(domains)
-	for result := range resultChan {
-		if result.Error != nil {
-			output.Stat.Errored++
-		} else if result.Available {
-			output.Stat.Available++
-		} else {
-			output.Stat.NotAvailable++
+
+	groupedResults := map[string][]resolver.DomainResult{}
+
+	spinner.New().
+		Title(" Checking domains...").
+		Action(func() {
+			for result := range resultChan {
+				if result.Error != nil {
+					output.Stat.Errored++
+				} else if result.Available {
+					output.Stat.Available++
+				} else {
+					output.Stat.NotAvailable++
+				}
+				if app.Config.OnlyAvailable && !result.Available {
+					continue
+				}
+
+				s := strings.Split(result.Domain, ".")
+				groupedResults[s[0]] = append(groupedResults[s[0]], result)
+			}
+		}).
+		Type(spinner.MiniDot).
+		Style(lipgloss.NewStyle().Foreground(lipgloss.Color("10"))).
+		Run()
+
+	for baseDomain, domains := range groupedResults {
+
+		if app.Config.OutputFormat == "text" {
+			fmt.Println(styleService.GroupTitle(baseDomain))
 		}
-		if app.Config.OnlyAvailable && !result.Available {
-			continue
+
+		slices.SortFunc(domains, func(a, b resolver.DomainResult) int {
+			return strings.Compare(a.Domain, b.Domain)
+		})
+
+		for _, domain := range domains {
+			outputWriter.Write(domain)
 		}
-		outputWriter.Write(result)
+
+		fmt.Print("\n")
 	}
 
 	outputWriter.Flush()
