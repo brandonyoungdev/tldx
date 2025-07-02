@@ -98,7 +98,9 @@ func (s *ResolverService) CheckDomain(ctx context.Context, domain string) (Check
 		return CheckResult{}, errors.New("invalid domain")
 	}
 
-	rdapResult, err := s.checkRDAP(ctx, domain)
+	rdapResult, err := s.withRetry(ctx, func() (CheckResult, error) {
+		return s.checkRDAP(ctx, domain)
+	})
 	if err == nil {
 		return rdapResult, nil
 	}

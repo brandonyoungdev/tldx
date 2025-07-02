@@ -29,9 +29,9 @@ func NewTldxContext() *TldxContext {
 	return &TldxContext{
 		Config: &TldxConfigOptions{
 			MaxRetries:       3,
-			InitialBackoff:   500 * time.Millisecond,
-			BackoffFactor:    5.0,
-			JitterFraction:   0.7, // +/-70% randomness
+			InitialBackoff:   1500 * time.Millisecond,
+			BackoffFactor:    1.5,
+			JitterFraction:   1.2, // +/-70% randomness
 			ContextTimeout:   15 * time.Second,
 			ConcurrencyLimit: 15,
 		},

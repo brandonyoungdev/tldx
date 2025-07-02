@@ -35,7 +35,7 @@ func RenderStatsSummary() string {
 		Render(fmt.Sprintf("%*d taken", numberWidth, Stat.NotAvailable))
 
 	timedOut := baseStyle.
-		Foreground(lipgloss.Color("16")). // Intense Yellow
+		Foreground(lipgloss.Color("12")). // Intense Yellow
 		Render(fmt.Sprintf("%*d timed out", numberWidth, Stat.TimedOut))
 
 	errored := baseStyle.
