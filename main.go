@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	ctx := config.NewTldxContext()
+	app := config.NewTldxContext()
 
-	rootCmd := cmd.NewRootCmd(ctx)
+	rootCmd := cmd.NewRootCmd(app)
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
