@@ -2,12 +2,12 @@ package presets
 
 var DefaultTLDPresets = map[string][]string{
 	"popular": {
-		"com", "net", "org", "co", "io", "me", "dev", "app", "ai",	
+		"com", "net", "org", "me", "dev", "app", "ai",
 	},
 	"tech": {
 		"io", "dev", "app", "ai", "cloud", "tech", "software", "systems",
 		"digital", "code", "codes", "data", "network", "security", "tools",
-		"technology", "games",
+		"technology", "games", "tv", "gg",
 	},
 	"personal": {
 		"me", "name", "bio", "life", "xyz", "site", "blog",
@@ -48,23 +48,23 @@ var DefaultTLDPresets = map[string][]string{
 		"security", "safe", "trust", "protection", "guard",
 	},
 	"creative": {
-		"art", "design", "ink", "gallery", "photo", "photography", "pics", "pictures", "studio", "style", 
+		"art", "design", "ink", "gallery", "photo", "photography", "pics", "pictures", "studio", "style",
 		"film", "show", "actor", "audio", "video", "dance", "music", "productions", "media",
 	},
 	"business": {
-		"com", "co", "biz", "ltd", "llc", "inc", "company", "global", "international", "solutions", "enterprises", 
+		"com", "co", "biz", "ltd", "llc", "inc", "company", "global", "international", "solutions", "enterprises",
 		"group", "holdings", "agency", "network", "ventures", "partners", "firm", "consulting", "services",
 	},
 	"food": {
-		"cafe", "bar", "restaurant", "pub", "menu", "eat", "pizza", "organic", "recipes", 
+		"cafe", "bar", "restaurant", "pub", "menu", "eat", "pizza", "organic", "recipes",
 		"cooking", "kitchen", "catering", "delivery", "food", "wine", "beer",
 	},
 	"social": {
-		"social", "community", "chat", "forum", "fans", "live", "lol", "wtf", "sucks", 
+		"social", "community", "chat", "forum", "fans", "live", "lol", "wtf", "sucks",
 		"fyi", "network", "group", "online", "link", "connect", "events",
 	},
 	"shopping": {
-		"shop", "store", "buy", "sale", "market", "shopping", "boutique", "deals", 
+		"shop", "store", "buy", "sale", "market", "shopping", "boutique", "deals",
 		"forsale", "promo", "gift", "blackfriday", "auction", "bargains",
 	},
 	"education": {
