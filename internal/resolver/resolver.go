@@ -91,7 +91,12 @@ func (s *ResolverService) withRetry(ctx context.Context, fn func() (CheckResult,
 			lastErr = err
 
 			sleep := time.Duration(rand.Float64() * float64(backoff))
-			time.Sleep(sleep)
+			select {
+			case <-time.After(sleep):
+				// Sleep completed
+			case <-ctx.Done():
+				return CheckResult{}, ctx.Err()
+			}
 
 			backoff = min(time.Duration(float64(backoff)*s.app.Config.BackoffFactor), maxBackoff)
 		}
