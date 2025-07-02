@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 	"net"
 	"net/http"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -247,25 +248,22 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 	}, nil
 }
 
-func (s ResolverService) CheckDomainsStreaming(domains []string) <-chan DomainResult {
+func (s *ResolverService) CheckDomainsStreaming(domains []string) <-chan DomainResult {
 	resultChan := make(chan DomainResult)
-	inputChan := make(chan string)
-
-	go func() {
-		defer close(inputChan)
-		for _, domain := range domains {
-			inputChan <- domain
-		}
-	}()
 
 	go func() {
 		var wg sync.WaitGroup
-		sem := make(chan struct{}, s.app.Config.ConcurrencyLimit)
+		limit := s.app.Config.ConcurrencyLimit
+		if limit <= 0 {
+			limit = runtime.NumCPU()
+		}
+		sem := make(chan struct{}, limit)
 
-		for domain := range inputChan {
-			domain := domain
+		for _, domain := range domains {
+			domain := domain // capture loop variable
 			sem <- struct{}{}
 			wg.Add(1)
+
 			go func() {
 				defer func() {
 					<-sem
@@ -276,6 +274,7 @@ func (s ResolverService) CheckDomainsStreaming(domains []string) <-chan DomainRe
 				defer cancel()
 
 				checkResult, err := s.CheckDomain(ctx, domain)
+
 				resultChan <- DomainResult{
 					Domain:    domain,
 					Available: !checkResult.Registered,

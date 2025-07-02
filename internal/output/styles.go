@@ -36,7 +36,7 @@ func (s *StyleService) NotAvailable(domain resolver.DomainResult) string {
 }
 
 func (s *StyleService) Errored(domain string, err error) string {
-	text := fmt.Sprintf("⚠️  %", domain)
+	text := fmt.Sprintf("⚠️  %s", domain)
 	if s.app.Config.Verbose {
 		text = fmt.Sprintf("%s - %s", text, err)
 	}
