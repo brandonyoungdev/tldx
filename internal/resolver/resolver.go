@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 	"net"
 	"net/http"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -71,6 +72,7 @@ func NewResolverService(app *config.TldxContext) *ResolverService {
 func (s *ResolverService) withRetry(ctx context.Context, fn func() (CheckResult, error)) (CheckResult, error) {
 	var lastErr error
 	backoff := s.app.Config.InitialBackoff
+	maxBackoff := s.app.Config.MaxBackoff
 
 	for attempt := 0; attempt <= s.app.Config.MaxRetries; attempt++ {
 		select {
@@ -81,16 +83,39 @@ func (s *ResolverService) withRetry(ctx context.Context, fn func() (CheckResult,
 			if err == nil {
 				return result, nil
 			}
-			lastErr = err
-			if attempt < s.app.Config.MaxRetries {
-				jitter := time.Duration(float64(backoff) * (1 + (rand.Float64()*2-1)*s.app.Config.JitterFraction))
-				time.Sleep(jitter)
-				backoff = time.Duration(float64(backoff) * s.app.Config.BackoffFactor)
+
+			if !isRetryable(err) || attempt == s.app.Config.MaxRetries {
+				return CheckResult{}, err
 			}
+
+			lastErr = err
+
+			sleep := time.Duration(rand.Float64() * float64(backoff))
+			time.Sleep(sleep)
+
+			backoff = min(time.Duration(float64(backoff)*s.app.Config.BackoffFactor), maxBackoff)
 		}
 	}
 
 	return CheckResult{}, lastErr
+}
+
+var retryablePatterns = []*regexp.Regexp{
+	regexp.MustCompile(`(?i)timeout`),
+	regexp.MustCompile(`(?i)connection.*refused`),
+	regexp.MustCompile(`(?i)temporary`),
+	regexp.MustCompile(`(?i)i/o timeout`),
+	regexp.MustCompile(`(?i)responded successfully`),
+}
+
+func isRetryable(err error) bool {
+	errStr := err.Error()
+	for _, r := range retryablePatterns {
+		if r.MatchString(errStr) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *ResolverService) CheckDomain(ctx context.Context, domain string) (CheckResult, error) {
