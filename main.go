@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/brandonyoungdev/tldx/cmd"
 	"github.com/brandonyoungdev/tldx/internal/config"
@@ -16,7 +15,6 @@ func main() {
 	rootCmd := cmd.NewRootCmd(ctx)
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
-		os.Exit(1)
 	}
 
 }
