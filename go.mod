@@ -8,7 +8,7 @@ require (
 	github.com/likexian/whois-parser v1.24.20
 	github.com/openrdap/rdap v0.9.1
 	github.com/spf13/cobra v1.9.1
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/net v0.41.0
 )
 
