@@ -11,6 +11,7 @@ type TldxConfigOptions struct {
 	Prefixes         []string
 	TLDPreset        string
 	Suffixes         []string
+	InputFile        string
 	MaxDomainLength  int
 	Verbose          bool
 	OnlyAvailable    bool
