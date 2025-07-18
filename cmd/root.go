@@ -6,6 +6,7 @@ import (
 
 	"github.com/brandonyoungdev/tldx/internal/config"
 	"github.com/brandonyoungdev/tldx/internal/domain"
+	"github.com/brandonyoungdev/tldx/internal/input"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +17,7 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 		Use:     "tldx [keywords]",
 		Short:   "Domain availability checker and ideation tool",
 		Version: Version,
-		Args:    cobra.MinimumNArgs(1),
+		Args:    cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			if app.Config.MaxDomainLength <= 0 {
 				slog.Error("Invalid max-domain-length provided. Pick a positive number please.")
@@ -28,6 +29,21 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 				}
 				app.Config.OutputFormat = "text"
 			}
+
+			if app.Config.InputFile != "" {
+				keywords, err := input.ReadKeywordsFromFile(app.Config.InputFile)
+				if err != nil {
+					slog.Error("Failed to read keywords from input file", "error", err)
+					return
+				}
+				args = append(args, keywords...)
+			}
+
+			if len(args) == 0 {
+				slog.Error("No keywords provided. Please provide keywords to check.")
+				return
+			}
+
 			domain.Exec(app, args)
 		},
 	}
@@ -42,6 +58,7 @@ func bindFlags(cmd *cobra.Command, app *config.TldxContext) {
 	cmd.Flags().StringSliceVarP(&cfg.TLDs, "tlds", "t", []string{}, "TLDs to check (e.g. com,io,ai)")
 	cmd.Flags().StringSliceVarP(&cfg.Prefixes, "prefixes", "p", []string{}, "Prefixes to add (e.g. get,my,use)")
 	cmd.Flags().StringSliceVarP(&cfg.Suffixes, "suffixes", "s", []string{}, "Suffixes to add (e.g. ify,ly)")
+	cmd.Flags().StringVarP(&cfg.InputFile, "input", "i", "", "File to read keywords from.")
 	cmd.Flags().BoolVarP(&cfg.Verbose, "verbose", "v", false, "Show verbose output")
 	cmd.Flags().BoolVarP(&cfg.OnlyAvailable, "only-available", "a", false, "Show only available domains")
 	cmd.Flags().IntVarP(&cfg.MaxDomainLength, "max-domain-length", "m", 64, "Maximum length of domain name")
