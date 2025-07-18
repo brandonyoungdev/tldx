@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/brandonyoungdev/tldx/compare/v1.2.5...v1.3.0) (2025-07-18)
+
+
+### Features
+
+* file input ([#71](https://github.com/brandonyoungdev/tldx/issues/71)) ([5abe2aa](https://github.com/brandonyoungdev/tldx/commit/5abe2aa21943e9479661fbef456b152ce744607b))
+
 ## [1.2.5](https://github.com/brandonyoungdev/tldx/compare/v1.2.4...v1.2.5) (2025-07-02)
 
 
