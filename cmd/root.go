@@ -39,12 +39,14 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 				args = append(args, keywords...)
 			}
 
+		},
+		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
+				slog.Error("No keywords provided. Please provide keywords to check.")
 				cmd.Help()
 				return
 			}
-		},
-		Run: func(cmd *cobra.Command, args []string) {
+
 			domain.Exec(app, args)
 		},
 	}
