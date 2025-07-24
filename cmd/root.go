@@ -40,7 +40,7 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 			}
 
 			if len(args) == 0 {
-				slog.Error("No keywords provided. Please provide keywords to check.")
+				cmd.Help()
 				return
 			}
 
