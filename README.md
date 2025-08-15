@@ -230,6 +230,7 @@ Download the archive for your OS and architecture:
 - macOS / Linux: `tldx_<version>_<os>_<arch>.tar.gz`
 
 - Windows: `tldx_<version>_windows_<arch>.zip`
+- Windows using winget: `winget install --id=brandonyoungdev.tldx  -e`
 
 Extract the binary and move it to a directory in your `$PATH`:
 
