@@ -33,6 +33,7 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
   - [Output Formats](#output-formats)
 - [📦 Installation](#-installation)
   - [macOS (Homebrew)](#macos-homebrew)
+  - [Windows (winget)](#windows-winget)
   - [Arch Linux (AUR)](#arch-linux-aur)
   - [Linux and Windows (Manual)](#linux-and-windows-manual)
   - [Go (Install from Source)](#go-install-from-source)
@@ -213,6 +214,13 @@ or
 ```sh
 brew tap brandonyoungdev/tldx
 brew install tldx
+```
+
+
+#### Windows (winget)
+
+```sh
+winget install --id=brandonyoungdev.tldx  -e
 ```
 
 #### Arch Linux (AUR)
