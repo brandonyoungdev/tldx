@@ -46,8 +46,8 @@ var labelRegexp = regexp.MustCompile(`^(?i)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
 
 func IsValidDomainOrKeyword(domainOrKeyword string) bool {
 	// Split domain into labels
-	labels := strings.Split(domainOrKeyword, ".")
-	for _, label := range labels {
+	labels := strings.SplitSeq(domainOrKeyword, ".")
+	for label := range labels {
 		if !labelRegexp.MatchString(label) {
 			return false
 		}
