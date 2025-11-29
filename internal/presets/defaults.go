@@ -6,7 +6,7 @@ var DefaultTLDPresets = map[string][]string{
 	},
 	"tech": {
 		"io", "dev", "app", "ai", "cloud", "tech", "software", "systems",
-		"digital", "code", "codes", "data", "network", "security", "tools",
+		"digital", "codes", "data", "network", "security", "tools",
 		"technology", "games", "tv", "gg",
 	},
 	"personal": {
