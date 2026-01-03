@@ -63,3 +63,15 @@ func (s *StyleService) IsNoColor() bool {
 	_, exists := os.LookupEnv("NO_COLOR")
 	return exists
 }
+
+func (s *StyleService) GroupHeader(text string) string {
+	if s.IsNoColor() {
+		return text
+	}
+
+	style := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("14")). // cyan
+		PaddingLeft(2)
+
+	return style.Render(text)
+}
