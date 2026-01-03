@@ -1,3 +1,4 @@
+version: 2
 # .goreleaser.yml
 project_name: tldx
 
@@ -16,8 +17,9 @@ builds:
       - amd64
       - arm64
     ldflags:
-      - "-s -w -X github.com/brandonyoungdev/tldx/cmd.Version={{.Version}}"
-
+      - -s -w
+      - -X github.com/brandonyoungdev/tldx/cmd.Version={{.Version}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
     env:
       - CGO_ENABLED=0
 
