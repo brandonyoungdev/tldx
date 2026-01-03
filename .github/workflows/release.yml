@@ -39,8 +39,11 @@ jobs:
       - name: Check what would be released
         id: check
         run: |
+          set +e  # Don't exit on error
           # Dry run to see what would be released
-          npx semantic-release --dry-run > release-preview.txt 2>&1 || true
+          npx semantic-release --dry-run > release-preview.txt 2>&1
+          EXIT_CODE=$?
+          set -e  # Re-enable exit on error
 
           cat release-preview.txt
 
@@ -54,18 +57,18 @@ jobs:
             echo "## 🚀 Release Preview: v$VERSION" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
 
-            # Extract and format release notes
+            # Extract release notes - they appear after "Release note for version"
             if grep -q "Release note for version" release-preview.txt; then
               echo "### Release Notes" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
-              # Extract the section between "Release note for version" and the next empty line or end
-              sed -n '/Release note for version/,/^$/p' release-preview.txt | tail -n +2 >> $GITHUB_STEP_SUMMARY
+              # Extract everything after "Release note for version" line
+              sed -n '/Release note for version/,$p' release-preview.txt | tail -n +2 >> $GITHUB_STEP_SUMMARY || true
             fi
 
             # Save notes to output for next job
-            if grep -q "Release note" release-preview.txt; then
+            if grep -q "Release note for version" release-preview.txt; then
               echo "notes<<EOF" >> $GITHUB_OUTPUT
-              sed -n '/Release note/,/^$/p' release-preview.txt >> $GITHUB_OUTPUT
+              sed -n '/Release note for version/,$p' release-preview.txt | tail -n +2 >> $GITHUB_OUTPUT || true
               echo "EOF" >> $GITHUB_OUTPUT
             fi
           else
@@ -74,6 +77,9 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "No releasable commits found since last release." >> $GITHUB_STEP_SUMMARY
           fi
+          
+          # Always exit successfully
+          exit 0
         env:
           GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
 
