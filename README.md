@@ -268,7 +268,7 @@ Group and sort domains by their base keyword:
 ```sh
 $ tldx openai google -p get,use -t com,io --format grouped
 
-  GOOGLE
+  google 
   getgoogle.com
   getgoogle.io
   google.com
@@ -276,7 +276,7 @@ $ tldx openai google -p get,use -t com,io --format grouped
   usegoogle.com
   usegoogle.io
 
-  OPENAI
+  openai 
   getopenai.com
   getopenai.io
   openai.com
