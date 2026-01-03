@@ -47,7 +47,7 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 				return
 			}
 
-			domain.Exec(app, args)
+			domain.Exec(cmd.Context(), app, args)
 		},
 	}
 
