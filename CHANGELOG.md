@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/brandonyoungdev/tldx/compare/v1.3.0...v1.3.1) (2026-01-03)
+
+
+### Bug Fixes
+
+* recognize patch ([a13b52c](https://github.com/brandonyoungdev/tldx/commit/a13b52c45587d1c335c7ec91add3012e3185728c))
+
 # [1.3.0](https://github.com/brandonyoungdev/tldx/compare/v1.2.5...v1.3.0) (2025-07-18)
 
 
