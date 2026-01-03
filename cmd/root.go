@@ -69,5 +69,5 @@ func bindFlags(cmd *cobra.Command, app *config.TldxContext) {
 	cmd.Flags().StringVar(&cfg.TLDPreset, "tld-preset", "", "Use a tld preset (e.g. popular, tech)")
 	cmd.Flags().StringVarP(&cfg.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv, grouped, grouped-tld)")
 	cmd.Flags().BoolVar(&cfg.NoColor, "no-color", false, "Disable colored output")
-	cmd.Flags().BoolVarP(&cfg.Regex, "regex", "r", false, "Enable regex pattern matching for domain generation")
+	cmd.Flags().BoolVarP(&cfg.Regex, "regex", "r", false, "Enable regex pattern matching for domain keywords")
 }

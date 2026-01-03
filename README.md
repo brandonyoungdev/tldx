@@ -77,7 +77,7 @@ Flags:
       --no-color                Disable colored output
   -a, --only-available          Show only available domains
   -p, --prefixes strings        Prefixes to add (e.g. get,my,use)
-  -r, --regex                   Enable regex pattern matching for domain generation
+  -r, --regex                   Enable regex pattern matching for domain keywords 
       --show-stats              Show statistics at the end of execution
   -s, --suffixes strings        Suffixes to add (e.g. ify,ly)
       --tld-preset string       Use a tld preset (e.g. popular, tech)
