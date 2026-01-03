@@ -67,6 +67,6 @@ func bindFlags(cmd *cobra.Command, app *config.TldxContext) {
 	cmd.Flags().IntVarP(&cfg.MaxDomainLength, "max-domain-length", "m", 64, "Maximum length of domain name")
 	cmd.Flags().BoolVar(&cfg.ShowStats, "show-stats", false, "Show statistics at the end of execution")
 	cmd.Flags().StringVar(&cfg.TLDPreset, "tld-preset", "", "Use a tld preset (e.g. popular, tech)")
-	cmd.Flags().StringVarP(&cfg.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv)")
+	cmd.Flags().StringVarP(&cfg.OutputFormat, "format", "f", "text", "Format of output (text, json, json-stream, json-array, csv, grouped, grouped-tld)")
 	cmd.Flags().BoolVar(&cfg.NoColor, "no-color", false, "Disable colored output")
 }
