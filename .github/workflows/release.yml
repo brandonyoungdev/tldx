@@ -49,17 +49,30 @@ jobs:
             echo "should_release=true" >> $GITHUB_OUTPUT
             VERSION=$(grep 'Published release' release-preview.txt | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | head -1)
             echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "A new release v$VERSION would be created" >> $GITHUB_STEP_SUMMARY
+
+            # Add to step summary
+            echo "## 🚀 Release Preview: v$VERSION" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Extract and format release notes
+            if grep -q "Release note for version" release-preview.txt; then
+              echo "### Release Notes" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              # Extract the section between "Release note for version" and the next empty line or end
+              sed -n '/Release note for version/,/^$/p' release-preview.txt | tail -n +2 >> $GITHUB_STEP_SUMMARY
+            fi
+
+            # Save notes to output for next job
+            if grep -q "Release note" release-preview.txt; then
+              echo "notes<<EOF" >> $GITHUB_OUTPUT
+              sed -n '/Release note/,/^$/p' release-preview.txt >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            fi
           else
             echo "should_release=false" >> $GITHUB_OUTPUT
-            echo "No release would be created (no releasable commits since last release)" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Extract release notes if available
-          if grep -q "Release note" release-preview.txt; then
-            echo "notes<<EOF" >> $GITHUB_OUTPUT
-            sed -n '/Release note/,/^$/p' release-preview.txt >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            echo "## ℹ️ No Release Required" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No releasable commits found since last release." >> $GITHUB_STEP_SUMMARY
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
