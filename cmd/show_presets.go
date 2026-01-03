@@ -14,7 +14,11 @@ func NewShowPresetsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			store := presets.NewTypedStore("tld", presets.DefaultTLDPresets)
 			presets.ShowAllPresets(store, func(v []string) string {
-				return strings.Join(v, ", ")
+				dotted := make([]string, len(v))
+				for i, tld := range v {
+					dotted[i] = "." + tld
+				}
+				return strings.Join(dotted, " ")
 			})
 		},
 	}

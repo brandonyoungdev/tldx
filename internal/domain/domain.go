@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/brandonyoungdev/tldx/internal/composer"
@@ -9,7 +10,7 @@ import (
 	"github.com/brandonyoungdev/tldx/internal/resolver"
 )
 
-func Exec(app *config.TldxContext, domainsOrKeywords []string) {
+func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []string) {
 
 	composerService := composer.NewComposerService(app)
 	domains, warnings := composerService.Compile(domainsOrKeywords)
@@ -23,12 +24,22 @@ func Exec(app *config.TldxContext, domainsOrKeywords []string) {
 	}
 
 	resolverService := resolver.NewResolverService(app)
-	resultChan := resolverService.CheckDomainsStreaming(domains)
+	resultChan := resolverService.CheckDomainsStreaming(ctx, domains)
 
 	outputWriter := output.GetOutputWriter(app)
 
 	output.Stat.Total = len(domains)
 	for result := range resultChan {
+		// Check if context was cancelled
+		select {
+		case <-ctx.Done():
+			if app.Config.Verbose {
+				fmt.Println(styleService.Styled("\\nOperation cancelled", "11"))
+			}
+			return
+		default:
+		}
+
 		if result.Error != nil {
 			output.Stat.Errored++
 		} else if result.Available {

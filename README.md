@@ -45,7 +45,7 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 - 🎯 Regex pattern support for generating domain combinations (e.g., all 3-letter domains)
 - 🚀 Fast and concurrent availability checks with RDAP
 - 📤 Streams results as they're found
-- 📦 Supports multiple output formats (text, json, json-stream, json-array, csv)
+- 📦 Supports multiple output formats (text, json, json-stream, json-array, csv, grouped, grouped-tld)
 - 🔧 Supports TLD presets to quickly select groups of common or curated TLD sets
 - 📏 Optional filtering by domain length
 - 🧠 Great for technical founders, indie hackers, and naming brainstorms
@@ -64,7 +64,7 @@ Available Commands:
   show-tld-presets Show available TLD presets
 
 Flags:
-  -f, --format string           Format of output (text, json, json-stream, json-array, csv) (default "text")
+  -f, --format string           Format of output (text, json, json-stream, json-array, csv, grouped, grouped-tld) (default "text")
   -h, --help                    help for tldx
   -m, --max-domain-length int   Maximum length of domain name (default 64)
       --no-color                Disable colored output
@@ -162,12 +162,20 @@ You can see all of the available presets:
 ```sh
 $ tldx show-tld-presets
 
-== TLD Presets ==
+TLD Presets:
 
-- business: com, co, biz, ltd, llc, inc, ...
-- creative: art, design, ink, ...
-- design: design, graphics, studio, art, gallery, ink
-  ...
+all                     (use all available TLDs)
+
+cheap                   .xyz .icu .site .online .space .fun .store
+                        .shop .click .pw .info .blog .top .website
+
+popular                 .com .net .org .io .dev .app .ai
+
+tech                    .io .dev .app .ai .cloud .tech .software
+                        .systems .digital .codes .data .network
+                        .security .tools .technology .games .gg
+...
+
 ```
 
 ### Permutations
@@ -214,6 +222,7 @@ $ tldx google reddit facebook -p get,my -s ly,hub -t com,io,ai --only-available
 
 By default, output is human-readable (`text`). You can change it with the `--format` or `-f` flag:
 
+#### JSON Array
 ```sh
 $ tldx openai -p use -s ly -t io --format json
 [
@@ -229,7 +238,7 @@ $ tldx openai -p use -s ly -t io --format json
 ]
 ```
 
-
+#### JSON Stream
 ```sh
 $ tldx openai -p use -s ly -t io --format json-stream
 {"domain":"useopenaily.io","available":true}
@@ -237,13 +246,59 @@ $ tldx openai -p use -s ly -t io --format json-stream
 ...
 ```
 
-
+#### CSV
 ```sh
 $ tldx openai -p use -s ly -t io --format csv
 domain,available,error
 openaily.io,true,
 openai.io,false,
 ...
+```
+
+#### Grouped by Keyword
+Group and sort domains by their base keyword:
+
+```sh
+$ tldx openai google -p get,use -t com,io --format grouped
+
+  GOOGLE
+  getgoogle.com
+  getgoogle.io
+  google.com
+  google.io
+  usegoogle.com
+  usegoogle.io
+
+  OPENAI
+  getopenai.com
+  getopenai.io
+  openai.com
+  openai.io
+  useopenai.com
+  useopenai.io
+```
+
+#### Grouped by TLD
+Group and sort domains by their top-level domain:
+
+```sh
+$ tldx openai google -p get,use -t com,io --format grouped-tld
+
+  .com
+  getgoogle.com
+  getopenai.com
+  google.com
+  openai.com
+  usegoogle.com
+  useopenai.com
+
+  .io
+  getgoogle.io
+  getopenai.io
+  google.io
+  openai.io
+  usegoogle.io
+  useopenai.io
 ```
 
 
