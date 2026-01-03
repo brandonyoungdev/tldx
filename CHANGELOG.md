@@ -1,3 +1,5 @@
+## [1.3.4](https://github.com/brandonyoungdev/tldx/compare/v1.3.3...v1.3.4) (2026-01-03)
+
 ## [1.3.3](https://github.com/brandonyoungdev/tldx/compare/v1.3.2...v1.3.3) (2026-01-03)
 
 ## [1.3.2](https://github.com/brandonyoungdev/tldx/compare/v1.3.1...v1.3.2) (2026-01-03)
