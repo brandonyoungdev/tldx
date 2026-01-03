@@ -13,9 +13,18 @@ import (
 var Version = "dev"
 
 func NewRootCmd(app *config.TldxContext) *cobra.Command {
+	asciiArt := `
+  _   _     _      
+ | | | |   | |     
+ | |_| | __| |_  __
+ | __| |/ _  \ \/ /
+ | |_| | (_| |>  < 
+  \__|_|\__,_/_/\_\
+`
 	cmd := &cobra.Command{
 		Use:     "tldx [keywords]",
 		Short:   "Domain availability checker and ideation tool",
+		Long:    asciiArt + "\nDomain availability checker and ideation tool",
 		Version: Version,
 		Args:    cobra.MinimumNArgs(0),
 		PreRun: func(cmd *cobra.Command, args []string) {
