@@ -77,7 +77,7 @@ Flags:
       --no-color                Disable colored output
   -a, --only-available          Show only available domains
   -p, --prefixes strings        Prefixes to add (e.g. get,my,use)
-  -r, --regex                   Enable regex pattern matching for domain keywords 
+  -r, --regex                   Enable regex pattern matching for domain keywords
       --show-stats              Show statistics at the end of execution
   -s, --suffixes strings        Suffixes to add (e.g. ify,ly)
       --tld-preset string       Use a tld preset (e.g. popular, tech)
@@ -268,7 +268,7 @@ Group and sort domains by their base keyword:
 ```sh
 $ tldx openai google -p get,use -t com,io --format grouped
 
-  google 
+  google
   getgoogle.com
   getgoogle.io
   google.com
@@ -276,7 +276,7 @@ $ tldx openai google -p get,use -t com,io --format grouped
   usegoogle.com
   usegoogle.io
 
-  openai 
+  openai
   getopenai.com
   getopenai.io
   openai.com

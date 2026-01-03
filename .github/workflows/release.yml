@@ -2,25 +2,16 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      releaseType:
-        description: 'Release type'
-        required: false
-        default: 'auto'
-        type: choice
-        options:
-          - auto
-          - patch
-          - minor
-          - major
 
 jobs:
-  release:
+  preview:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
-      pull-requests: write
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+      notes: ${{ steps.check.outputs.notes }}
 
     steps:
       - name: Checkout
@@ -45,12 +36,75 @@ jobs:
             @semantic-release/git \
             conventional-changelog-conventionalcommits
 
+      - name: Check what would be released
+        id: check
+        run: |
+          # Dry run to see what would be released
+          npx semantic-release --dry-run > release-preview.txt 2>&1 || true
+
+          cat release-preview.txt
+
+          # Check if a release would happen
+          if grep -q "Published release" release-preview.txt; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            VERSION=$(grep 'Published release' release-preview.txt | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | head -1)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "A new release v$VERSION would be created" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No release would be created (no releasable commits since last release)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Extract release notes if available
+          if grep -q "Release note" release-preview.txt; then
+            echo "notes<<EOF" >> $GITHUB_OUTPUT
+            sed -n '/Release note/,/^$/p' release-preview.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+
+  release:
+    needs: preview
+    if: needs.preview.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.TAP_GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install semantic-release and plugins
+        run: |
+          npm init -y
+          npm install --save-dev \
+            semantic-release \
+            @semantic-release/commit-analyzer \
+            @semantic-release/release-notes-generator \
+            @semantic-release/changelog \
+            @semantic-release/github \
+            @semantic-release/git \
+            conventional-changelog-conventionalcommits
+
       - name: Run semantic-release
         id: semantic
         run: |
           echo "Running semantic-release..."
+
           RELEASE_OUTPUT=$(npx semantic-release 2>&1 | tee semantic-output.txt)
-          echo $RELEASE_OUTPUT
+          echo "$RELEASE_OUTPUT"
 
           # Parse tag from output
           RELEASE_TAG=$(grep 'Published release' semantic-output.txt | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
