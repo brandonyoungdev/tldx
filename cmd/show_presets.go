@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/brandonyoungdev/tldx/internal/presets"
@@ -14,11 +15,17 @@ func NewShowPresetsCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			store := presets.NewTypedStore("tld", presets.DefaultTLDPresets)
 			presets.ShowAllPresets(store, func(v []string) string {
-				dotted := make([]string, len(v))
-				for i, tld := range v {
-					dotted[i] = "." + tld
-				}
-				return strings.Join(dotted, " ")
+				// Sort TLDs by length, then alphabetically
+				sorted := make([]string, len(v))
+				copy(sorted, v)
+				sort.Slice(sorted, func(i, j int) bool {
+					if len(sorted[i]) != len(sorted[j]) {
+						return len(sorted[i]) < len(sorted[j])
+					}
+					return sorted[i] < sorted[j]
+				})
+
+				return strings.Join(sorted, " ")
 			})
 		},
 	}

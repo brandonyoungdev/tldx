@@ -22,22 +22,29 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 
 ## 📚 Table of Contents
 
-- [⚡ Features](#-features)
-- [🛠️ Usage](#️-usage)
-- [🔗 Examples](#-examples)
-  - [Domain Availability](#domain-availability)
-  - [Regex Domain Selection](#regex-domain-selection)
-  - [Presets](#presets)
-  - [Permutations](#permutations)
-  - [Brace Expansion (macOS, Linux)](#brace-expansion-macos-linux)
-  - [Show Only Available Domains](#show-only-available-domains)
-  - [Output Formats](#output-formats)
-- [📦 Installation](#-installation)
-  - [macOS (Homebrew)](#macos-homebrew)
-  - [Windows (winget)](#windows-winget)
-  - [Arch Linux (AUR)](#arch-linux-aur)
-  - [Linux and Windows (Manual)](#linux-and-windows-manual)
-  - [Go (Install from Source)](#go-install-from-source)
+- [tldx](#tldx)
+  - [📚 Table of Contents](#-table-of-contents)
+  - [⚡ Features](#-features)
+  - [🛠️ Usage](#️-usage)
+  - [🔗 Examples](#-examples)
+    - [Domain Availability](#domain-availability)
+    - [Regex Domain Selection](#regex-domain-selection)
+    - [Presets](#presets)
+    - [Permutations](#permutations)
+    - [Brace Expansion (macOS, Linux)](#brace-expansion-macos-linux)
+    - [Show Only Available Domains](#show-only-available-domains)
+    - [Output Formats](#output-formats)
+      - [JSON Array](#json-array)
+      - [JSON Stream](#json-stream)
+      - [CSV](#csv)
+      - [Grouped by Keyword](#grouped-by-keyword)
+      - [Grouped by TLD](#grouped-by-tld)
+  - [📦 Installation](#-installation)
+      - [macOS (Homebrew)](#macos-homebrew)
+      - [Windows (winget)](#windows-winget)
+      - [Arch Linux (AUR)](#arch-linux-aur)
+      - [Linux and Windows (Manual)](#linux-and-windows-manual)
+      - [Go (Install from Source)](#go-install-from-source)
 
 ## ⚡ Features
 
@@ -166,14 +173,14 @@ TLD Presets:
 
 all                     (use all available TLDs)
 
-cheap                   .xyz .icu .site .online .space .fun .store
-                        .shop .click .pw .info .blog .top .website
+cheap                   pw fun icu top xyz blog info shop site click
+                        space store online website
 
-popular                 .com .net .org .io .dev .app .ai
+popular                 ai me app com dev net org
 
-tech                    .io .dev .app .ai .cloud .tech .software
-                        .systems .digital .codes .data .network
-                        .security .tools .technology .games .gg
+tech                    io ai gg app dev tech codes tools cloud games
+                        software digital network security systems
+                        data technology
 ...
 
 ```
