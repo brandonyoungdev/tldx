@@ -1,9 +1,18 @@
 name: Release
 
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: 'Release type'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
 
 jobs:
   release:
@@ -22,7 +31,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install semantic-release and plugins
         run: |

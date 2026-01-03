@@ -1,8 +1,9 @@
 name: Add release preview comment
 
-on:
-  pull_request:
-    branches: [main]
+# Disabled: Using manual releases instead of automatic
+# on:
+#   pull_request:
+#     branches: [main]
 
 jobs:
   release-comment:
