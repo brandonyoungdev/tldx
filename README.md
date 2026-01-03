@@ -28,6 +28,7 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
   - [🛠️ Usage](#️-usage)
   - [🔗 Examples](#-examples)
     - [Domain Availability](#domain-availability)
+    - [Regex Domain Selection](#regex-domain-selection)
     - [Presets](#presets)
     - [Permutations](#permutations)
     - [Brace Expansion (macOS, Linux)](#brace-expansion-macos-linux)
@@ -48,6 +49,7 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 ## ⚡ Features
 
 - 🔍 Smart keyword-based domain permutations (prefixes, suffixes, TLDs)
+- 🎯 Regex pattern support for generating domain combinations (e.g., all 3-letter domains)
 - 🚀 Fast and concurrent availability checks with RDAP
 - 📤 Streams results as they're found
 - 📦 Supports multiple output formats (text, json, json-stream, json-array, csv, grouped, grouped-tld)
@@ -75,6 +77,7 @@ Flags:
       --no-color                Disable colored output
   -a, --only-available          Show only available domains
   -p, --prefixes strings        Prefixes to add (e.g. get,my,use)
+  -r, --regex                   Enable regex pattern matching for domain keywords 
       --show-stats              Show statistics at the end of execution
   -s, --suffixes strings        Suffixes to add (e.g. ify,ly)
       --tld-preset string       Use a tld preset (e.g. popular, tech)
@@ -99,6 +102,45 @@ $ tldx google youtube reddit
   ❌ google.com is not available
   ❌ youtube.com is not available
 ```
+
+### Regex Domain Selection
+
+Use regex patterns with the `--regex` flag to generate domain combinations based on patterns:
+
+```sh
+# Check all 3-letter .com domains
+$ tldx '[a-z]{3}' --regex --tlds com --only-available
+  ✔️  aaa.com is available
+  ✔️  aab.com is available
+  ✔️  xyz.com is available
+  ...
+```
+
+```sh
+# Check all 2-letter domains with specific TLDs
+$ tldx '[a-z]{2}' --regex --tlds io,ai --only-available
+  ✔️  qa.io is available
+  ✔️  zx.ai is available
+  ...
+```
+
+```sh
+# Combine patterns with prefixes
+$ tldx '[a-z]{2}' --regex --prefixes my,get --tlds app --only-available
+  ✔️  myaa.app is available
+  ✔️  getab.app is available
+  ...
+```
+
+```sh
+# Check domains starting with 'app'
+$ tldx 'app[a-z]{2}' --regex --tlds dev,io --only-available
+  ✔️  appxy.dev is available
+  ✔️  appqz.io is available
+  ...
+```
+
+**Note:** Regex patterns are validated for safety. Patterns generating more than 500,000 combinations will be skipped.
 
 ### Presets
 

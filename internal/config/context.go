@@ -18,6 +18,7 @@ type TldxConfigOptions struct {
 	ShowStats        bool
 	OutputFormat     string
 	NoColor          bool
+	Regex            bool
 	MaxRetries       int
 	InitialBackoff   time.Duration
 	MaxBackoff       time.Duration
