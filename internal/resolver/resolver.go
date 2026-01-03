@@ -280,10 +280,12 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 	}, nil
 }
 
-func (s *ResolverService) CheckDomainsStreaming(domains []string) <-chan DomainResult {
+func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, domains []string) <-chan DomainResult {
 	resultChan := make(chan DomainResult)
 
 	go func() {
+		defer close(resultChan)
+
 		var wg sync.WaitGroup
 		limit := s.app.Config.ConcurrencyLimit
 		if limit <= 0 {
@@ -293,6 +295,14 @@ func (s *ResolverService) CheckDomainsStreaming(domains []string) <-chan DomainR
 
 		for _, domain := range domains {
 			domain := domain // capture loop variable
+
+			// Check if parent context is cancelled before starting new goroutine
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
 			sem <- struct{}{}
 			wg.Add(1)
 
@@ -302,22 +312,27 @@ func (s *ResolverService) CheckDomainsStreaming(domains []string) <-chan DomainR
 					wg.Done()
 				}()
 
-				ctx, cancel := context.WithTimeout(context.Background(), s.app.Config.ContextTimeout)
+				// Create timeout context from parent context
+				checkCtx, cancel := context.WithTimeout(ctx, s.app.Config.ContextTimeout)
 				defer cancel()
 
-				checkResult, err := s.CheckDomain(ctx, domain)
+				checkResult, err := s.CheckDomain(checkCtx, domain)
 
-				resultChan <- DomainResult{
+				select {
+				case resultChan <- DomainResult{
 					Domain:    domain,
 					Available: !checkResult.Registered,
 					Details:   checkResult.Details,
 					Error:     err,
+				}:
+				case <-ctx.Done():
+					// Context cancelled, don't send result
+					return
 				}
 			}()
 		}
 
 		wg.Wait()
-		close(resultChan)
 	}()
 
 	return resultChan
