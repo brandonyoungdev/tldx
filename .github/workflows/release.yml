@@ -26,8 +26,8 @@ jobs:
 
       - name: Install semantic-release and plugins
         run: |
-          npm init -y
-          npm install --save-dev \
+          # Install without modifying package.json to keep git clean
+          npm install --no-save \
             semantic-release \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
@@ -101,8 +101,8 @@ jobs:
 
       - name: Install semantic-release and plugins
         run: |
-          npm init -y
-          npm install --save-dev \
+          # Install without modifying package.json to keep git clean
+          npm install --no-save \
             semantic-release \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
