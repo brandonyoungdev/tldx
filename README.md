@@ -120,12 +120,20 @@ You can see all of the available presets:
 ```sh
 $ tldx show-tld-presets
 
-== TLD Presets ==
+TLD Presets:
 
-- business: com, co, biz, ltd, llc, inc, ...
-- creative: art, design, ink, ... 
-- design: design, graphics, studio, art, gallery, ink
-  ...
+all                     (use all available TLDs)
+
+cheap                   .xyz .icu .site .online .space .fun .store
+                        .shop .click .pw .info .blog .top .website
+
+popular                 .com .net .org .io .dev .app .ai
+
+tech                    .io .dev .app .ai .cloud .tech .software
+                        .systems .digital .codes .data .network
+                        .security .tools .technology .games .gg
+...
+
 ```
 
 ### Permutations
