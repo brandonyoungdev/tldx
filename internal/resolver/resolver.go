@@ -146,11 +146,15 @@ func (s *ResolverService) CheckDomain(ctx context.Context, domain string) (Check
 			}, nil
 		}
 
-		whoisResult, err := s.checkWhois(ctx, domain)
-		if !whoisResult.Registered && err == nil {
-			return whoisResult, err
+		whoisResult, whoisErr := s.checkWhois(ctx, domain)
+		if whoisErr == nil && whoisResult.Registered {
+			return whoisResult, nil
 		}
 
+		return CheckResult{
+			Registered: false,
+			Details:    "No RDAP server available; DNS did not resolve; No WHOIS (likely available)",
+		}, nil
 	}
 
 	if ctx.Err() != nil {
@@ -182,20 +186,20 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 		if strings.Contains(err.Error(), "object does not exist.") || strings.Contains(err.Error(), "404") {
 			return CheckResult{
 				Registered: false,
-				Details:    fmt.Sprintf("RDAP is not found or doesn't exist"),
+				Details:    "RDAP is not found or doesn't exist",
 			}, nil
 		}
 
 		return CheckResult{
 			Registered: true,
-			Details:    fmt.Sprintf("RDAP query error"),
+			Details:    "RDAP query error",
 		}, err
 	}
 
 	if domainResponse == nil {
 		return CheckResult{
 			Registered: false,
-			Details:    fmt.Sprintf("No RDAP response available"),
+			Details:    "No RDAP response available",
 		}, nil
 	}
 
@@ -261,11 +265,11 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 		return CheckResult{
 			Registered: false,
 			Details:    fmt.Sprintf("Failed to parse WHOIS for %s: %v", domain, err),
-		}, nil
+		}, fmt.Errorf("WHOIS parse failed: %w", err)
 	}
 
-	registrar := "<unknown>"
-	created := "<unknown>"
+	registrar := ""
+	created := ""
 
 	if parsed.Registrar != nil && parsed.Registrar.Name != "" {
 		registrar = parsed.Registrar.Name
@@ -274,9 +278,24 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 		created = parsed.Domain.CreatedDate
 	}
 
+	if registrar == "" && created == "" {
+		return CheckResult{
+			Registered: false,
+			Details:    "WHOIS returned no registration data",
+		}, fmt.Errorf("WHOIS returned no meaningful registration data")
+	}
+
+	details := "WHOIS Registered"
+	if registrar != "" {
+		details += ": " + registrar
+	}
+	if created != "" {
+		details += " (" + created + ")"
+	}
+
 	return CheckResult{
 		Registered: true,
-		Details:    fmt.Sprintf("WHOIS Registered: %s (%s)", registrar, created),
+		Details:    details,
 	}, nil
 }
 
@@ -294,8 +313,6 @@ func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, domains []s
 		sem := make(chan struct{}, limit)
 
 		for _, domain := range domains {
-			domain := domain // capture loop variable
-
 			// Check if parent context is cancelled before starting new goroutine
 			select {
 			case <-ctx.Done():
