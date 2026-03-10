@@ -3,7 +3,7 @@ module github.com/brandonyoungdev/tldx
 go 1.26.0
 
 require (
-	github.com/charmbracelet/fang v0.4.4
+	github.com/charmbracelet/fang v1.0.0
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/likexian/whois v1.15.7
 	github.com/likexian/whois-parser v1.24.21
