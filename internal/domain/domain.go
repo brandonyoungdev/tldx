@@ -10,10 +10,10 @@ import (
 	"github.com/brandonyoungdev/tldx/internal/resolver"
 )
 
-func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []string) {
+func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []string) bool {
 
 	composerService := composer.NewComposerService(app)
-	domains, warnings := composerService.Compile(domainsOrKeywords)
+	specs, warnings := composerService.Compile(domainsOrKeywords)
 	styleService := output.NewStyleService(app)
 	if warnings != nil && len(warnings) > 0 {
 		for _, warning := range warnings {
@@ -23,20 +23,37 @@ func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []stri
 		}
 	}
 
+	if app.Config.DryRun {
+		fmt.Printf("Would check %d domain(s):\n", len(specs))
+		for _, spec := range specs {
+			fmt.Printf("  %s\n", spec.Domain)
+		}
+		return false
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	resolverService := resolver.NewResolverService(app)
-	resultChan := resolverService.CheckDomainsStreaming(ctx, domains)
+	resultChan := resolverService.CheckDomainsStreaming(ctx, specs)
 
 	outputWriter := output.GetOutputWriter(app)
 
-	output.Stat.Total = len(domains)
+	output.Stat.Total = len(specs)
+	foundAvailable := false
+	availableCount := 0
+
 	for result := range resultChan {
-		// Check if context was cancelled
 		select {
 		case <-ctx.Done():
 			if app.Config.Verbose {
 				fmt.Println(styleService.Styled("\\nOperation cancelled", "11"))
 			}
-			return
+			outputWriter.Flush()
+			if app.Config.ShowStats && app.Config.OutputFormat == "text" {
+				fmt.Println(output.RenderStatsSummary())
+			}
+			return foundAvailable
 		default:
 		}
 
@@ -44,6 +61,8 @@ func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []stri
 			output.Stat.Errored++
 		} else if result.Available {
 			output.Stat.Available++
+			foundAvailable = true
+			availableCount++
 		} else {
 			output.Stat.NotAvailable++
 		}
@@ -51,12 +70,18 @@ func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []stri
 			continue
 		}
 		outputWriter.Write(result)
+
+		if app.Config.Limit > 0 && availableCount >= app.Config.Limit {
+			cancel()
+			break
+		}
 	}
 
 	outputWriter.Flush()
 
 	if app.Config.ShowStats && app.Config.OutputFormat == "text" {
-		// TODO: pipe this out for non-text formats
 		fmt.Println(output.RenderStatsSummary())
 	}
+
+	return foundAvailable
 }

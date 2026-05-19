@@ -40,3 +40,32 @@ func TestReadKeywordsFromFile(t *testing.T) {
 		t.Error("expected error for nonexistent file, got nil")
 	}
 }
+
+func TestReadKeywordsFromStdin(t *testing.T) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("failed to create pipe: %v", err)
+	}
+
+	origStdin := os.Stdin
+	os.Stdin = r
+	defer func() { os.Stdin = origStdin }()
+
+	w.WriteString("foo\nbar\nbaz\n")
+	w.Close()
+
+	keywords, err := input.ReadKeywordsFromFile("-")
+	if err != nil {
+		t.Fatalf("unexpected error reading from stdin: %v", err)
+	}
+
+	expected := []string{"foo", "bar", "baz"}
+	if len(keywords) != len(expected) {
+		t.Fatalf("expected %d keywords, got %d: %v", len(expected), len(keywords), keywords)
+	}
+	for i, k := range keywords {
+		if k != expected[i] {
+			t.Errorf("expected %q at index %d, got %q", expected[i], i, k)
+		}
+	}
+}

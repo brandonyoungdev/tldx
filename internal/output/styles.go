@@ -10,13 +10,21 @@ import (
 )
 
 type StyleService struct {
-	app *config.TldxContext
+	app     *config.TldxContext
+	noColor bool
 }
 
 func NewStyleService(app *config.TldxContext) *StyleService {
-	return &StyleService{
-		app,
+	noColor := app.Config.NoColor
+	if !noColor {
+		_, noColor = os.LookupEnv("NO_COLOR")
 	}
+	if !noColor {
+		if fi, err := os.Stdout.Stat(); err == nil {
+			noColor = fi.Mode()&os.ModeCharDevice == 0
+		}
+	}
+	return &StyleService{app: app, noColor: noColor}
 }
 
 func (s *StyleService) Available(domain resolver.DomainResult) string {
@@ -57,11 +65,7 @@ func (s *StyleService) Styled(text string, color string) string {
 }
 
 func (s *StyleService) IsNoColor() bool {
-	if s.app.Config.NoColor {
-		return true
-	}
-	_, exists := os.LookupEnv("NO_COLOR")
-	return exists
+	return s.noColor
 }
 
 func (s *StyleService) GroupHeader(text string) string {

@@ -2,19 +2,26 @@ package input
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"strings"
 )
 
 func ReadKeywordsFromFile(filename string) ([]string, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
+	var r io.Reader
+	if filename == "-" {
+		r = os.Stdin
+	} else {
+		file, err := os.Open(filename)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		r = file
 	}
-	defer file.Close()
 
 	var keywords []string
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line != "" {
