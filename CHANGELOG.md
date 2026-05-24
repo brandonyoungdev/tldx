@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/brandonyoungdev/tldx/compare/v1.3.4...v1.4.0) (2026-05-24)
+
+
+### Features
+
+* mcp ([#122](https://github.com/brandonyoungdev/tldx/issues/122)) ([08a1066](https://github.com/brandonyoungdev/tldx/commit/08a1066957a8844cff1fe342520d68535a8abb74))
+
 ## [1.3.4](https://github.com/brandonyoungdev/tldx/compare/v1.3.3...v1.3.4) (2026-01-03)
 
 ## [1.3.3](https://github.com/brandonyoungdev/tldx/compare/v1.3.2...v1.3.3) (2026-01-03)
