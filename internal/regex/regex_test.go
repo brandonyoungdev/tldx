@@ -252,3 +252,39 @@ func TestGenerateSegmentCombos(t *testing.T) {
 		})
 	}
 }
+
+func TestValidatePattern(t *testing.T) {
+	if err := ValidatePattern("[a-z]{3}"); err != nil {
+		t.Errorf("Expected valid pattern to pass, got error: %v", err)
+	}
+
+	if err := ValidatePattern("[invalid("); err == nil {
+		t.Error("Expected invalid regex to return error, got nil")
+	}
+}
+
+func TestParsePattern_EscapeSequence(t *testing.T) {
+	// \a should be treated as a literal 'a'
+	results, err := ExpandPattern(`\a`)
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+	if len(results) != 1 || results[0] != "a" {
+		t.Errorf("Expected [\"a\"], got %v", results)
+	}
+}
+
+func TestParsePattern_BraceWithoutPreceding_Error(t *testing.T) {
+	_, err := ExpandPattern("{3}")
+	if err == nil {
+		t.Error("Expected error for '{' without preceding element, got nil")
+	}
+}
+
+func TestParseCharClass_InvalidRange_Error(t *testing.T) {
+	// z-a is an invalid descending range
+	_, err := ExpandPattern("[z-a]")
+	if err == nil {
+		t.Error("Expected error for invalid range z-a, got nil")
+	}
+}

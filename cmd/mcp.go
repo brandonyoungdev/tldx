@@ -130,6 +130,16 @@ var MCPCheckDomainsHandler = checkDomainsHandler
 var MCPGenerateAndCheckHandler = generateAndCheckHandler
 var MCPListTLDPresetsHandler = listTLDPresetsHandler
 
+var MCPCheckDomainTool      = checkDomainTool
+var MCPCheckDomainsTool     = checkDomainsTool
+var MCPGenerateAndCheckTool = generateAndCheckTool
+var MCPListTLDPresetsTool   = listTLDPresetsTool
+
+// ResolverFactory creates a resolver service. Overridable in tests for dependency injection.
+var ResolverFactory = func(app *config.TldxContext, opts ...resolver.ResolverOption) *resolver.ResolverService {
+	return resolver.NewResolverService(app, opts...)
+}
+
 func checkDomainHandler(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	domain, err := req.RequireString("domain")
 	if err != nil {
@@ -141,7 +151,7 @@ func checkDomainHandler(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	}
 
 	app := config.NewTldxContext()
-	svc := resolver.NewResolverService(app)
+	svc := ResolverFactory(app)
 	result, checkErr := svc.CheckDomain(ctx, domain)
 
 	out := map[string]any{
@@ -166,7 +176,7 @@ func checkDomainsHandler(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	}
 
 	app := config.NewTldxContext()
-	svc := resolver.NewResolverService(app)
+	svc := ResolverFactory(app)
 
 	specs := make([]resolver.DomainSpec, len(domains))
 	for i, d := range domains {
@@ -225,7 +235,7 @@ func generateAndCheckHandler(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	resolverSvc := resolver.NewResolverService(app)
+	resolverSvc := ResolverFactory(app)
 	resultChan := resolverSvc.CheckDomainsStreaming(ctx, specs)
 
 	availableCount := 0

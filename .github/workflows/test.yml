@@ -30,7 +30,14 @@ jobs:
         run: go build -v ./...
 
       - name: Run tests
-        run: go test ./... -v
+        run: go test ./... -v -coverprofile=coverage.out -covermode=atomic
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.out
+          fail_ci_if_error: false
 
       - name: Check code modernization
         run: make modernize-check

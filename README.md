@@ -6,6 +6,7 @@
 ![Tests](https://img.shields.io/github/actions/workflow/status/brandonyoungdev/tldx/test.yml?branch=main)
 ![GitHub](https://img.shields.io/github/license/brandonyoungdev/tldx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/brandonyoungdev/tldx)](https://goreportcard.com/report/github.com/brandonyoungdev/tldx)
+[![codecov](https://codecov.io/gh/brandonyoungdev/tldx/branch/main/graph/badge.svg)](https://codecov.io/gh/brandonyoungdev/tldx)
 
 
 `tldx` helps you brainstorm available domain names fast.

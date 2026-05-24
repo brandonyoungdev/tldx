@@ -21,9 +21,35 @@ import (
 	"github.com/openrdap/rdap/bootstrap"
 )
 
+// rdapQuerier abstracts the RDAP client, allowing injection in tests.
+type rdapQuerier interface {
+	Do(req *rdap.Request) (*rdap.Response, error)
+}
+
+// ResolverOption configures a ResolverService.
+type ResolverOption func(*ResolverService)
+
+// WithRDAPQuerier injects a custom RDAP querier (for testing).
+func WithRDAPQuerier(q rdapQuerier) ResolverOption {
+	return func(s *ResolverService) { s.rdapQuerier = q }
+}
+
+// WithWhoisFetcher injects a custom WHOIS fetch function (for testing).
+func WithWhoisFetcher(fn func(string, ...string) (string, error)) ResolverOption {
+	return func(s *ResolverService) { s.whoisFn = fn }
+}
+
+// WithDNSLookup injects a custom DNS lookup function (for testing).
+func WithDNSLookup(fn func(context.Context, string) ([]string, error)) ResolverOption {
+	return func(s *ResolverService) { s.dnsLookupFn = fn }
+}
+
 type ResolverService struct {
-	httpClient *http.Client
-	app        *config.TldxContext
+	httpClient  *http.Client
+	app         *config.TldxContext
+	rdapQuerier rdapQuerier
+	whoisFn     func(string, ...string) (string, error)
+	dnsLookupFn func(context.Context, string) ([]string, error)
 }
 
 type DomainSpec struct {
@@ -82,11 +108,15 @@ type Resolver interface {
 	Check(domain string) (*CheckResult, error)
 }
 
-func NewResolverService(app *config.TldxContext) *ResolverService {
-	return &ResolverService{
+func NewResolverService(app *config.TldxContext, opts ...ResolverOption) *ResolverService {
+	s := &ResolverService{
 		app:        app,
 		httpClient: &http.Client{},
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 func (s *ResolverService) withRetry(ctx context.Context, fn func() (CheckResult, error)) (CheckResult, error) {
@@ -230,12 +260,18 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 }
 
 func (s *ResolverService) checkIfDNSResolves(ctx context.Context, domain string) (bool, error) {
+	if s.dnsLookupFn != nil {
+		ips, err := s.dnsLookupFn(ctx, domain)
+		if err != nil {
+			return false, err
+		}
+		return len(ips) > 0, nil
+	}
 	resolver := net.Resolver{}
 	ips, err := resolver.LookupHost(ctx, domain)
 	if err != nil {
 		return false, err
 	}
-
 	return len(ips) > 0, nil
 }
 
@@ -247,8 +283,13 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 
 	resultCh := make(chan result, 1)
 
+	whoisFetch := whois.Whois
+	if s.whoisFn != nil {
+		whoisFetch = s.whoisFn
+	}
+
 	go func() {
-		raw, err := whois.Whois(domain)
+		raw, err := whoisFetch(domain)
 		resultCh <- result{raw: raw, err: err}
 	}()
 
@@ -388,14 +429,19 @@ func (s ResolverService) QueryDomainContext(ctx context.Context, domain string) 
 
 	req = req.WithContext(ctx)
 
-	client := &rdap.Client{
-		Bootstrap: &bootstrap.Client{
+	var q rdapQuerier
+	if s.rdapQuerier != nil {
+		q = s.rdapQuerier
+	} else {
+		q = &rdap.Client{
+			Bootstrap: &bootstrap.Client{
+				HTTP: s.httpClient,
+			},
 			HTTP: s.httpClient,
-		},
-		HTTP: s.httpClient,
+		}
 	}
 
-	resp, err := client.Do(req)
+	resp, err := q.Do(req)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch RDAP data: %w", err)
