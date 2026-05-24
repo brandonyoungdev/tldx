@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 
 	"github.com/charmbracelet/fang"
@@ -21,6 +22,9 @@ func main() {
 		fang.WithNotifySignal(os.Interrupt),
 		fang.WithVersion(cmd.Version),
 	); err != nil {
+		if errors.Is(err, cmd.ErrNoAvailableDomains) {
+			os.Exit(2)
+		}
 		os.Exit(1)
 	}
 }

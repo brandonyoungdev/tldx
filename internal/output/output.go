@@ -23,7 +23,7 @@ func GetOutputWriter(app *config.TldxContext) ResultOutput {
 	case "json-stream":
 		return &JSONStreamOutput{}
 	case "json-array", "json":
-		return NewJsonArrayOutput(os.Stdout)
+		return NewJsonArrayOutput(os.Stdout, app)
 	case "csv":
 		return NewCSVOutput()
 	case "text":
@@ -74,7 +74,7 @@ type CSVOutput struct {
 
 func NewCSVOutput() *CSVOutput {
 	w := csv.NewWriter(os.Stdout)
-	w.Write([]string{"domain", "available", "details", "error"})
+	w.Write([]string{"domain", "available", "keyword", "prefix", "suffix", "tld", "details", "error"})
 	return &CSVOutput{writer: w}
 }
 
@@ -87,6 +87,10 @@ func (o *CSVOutput) Write(result resolver.DomainResult) {
 	record := []string{
 		result.Domain,
 		fmt.Sprintf("%v", result.Available),
+		result.Keyword,
+		result.Prefix,
+		result.Suffix,
+		result.TLD,
 		result.Details,
 		errMsg,
 	}
@@ -111,15 +115,22 @@ func (o *JSONStreamOutput) Write(result resolver.DomainResult) {
 
 func (o *JSONStreamOutput) Flush() {}
 
+type jsonArrayPayload struct {
+	Results []resolver.EncodableDomainResult `json:"results"`
+	Stats   *Stats                           `json:"stats,omitempty"`
+}
+
 type JsonArrayOutput struct {
 	results []resolver.EncodableDomainResult
 	writer  io.Writer
+	app     *config.TldxContext
 }
 
-func NewJsonArrayOutput(w io.Writer) *JsonArrayOutput {
+func NewJsonArrayOutput(w io.Writer, app *config.TldxContext) *JsonArrayOutput {
 	return &JsonArrayOutput{
 		results: make([]resolver.EncodableDomainResult, 0, 100),
 		writer:  w,
+		app:     app,
 	}
 }
 
@@ -130,6 +141,19 @@ func (o *JsonArrayOutput) Write(result resolver.DomainResult) {
 func (o *JsonArrayOutput) Flush() {
 	enc := json.NewEncoder(o.writer)
 	enc.SetIndent("", "  ")
+
+	if o.app != nil && o.app.Config.ShowStats {
+		statsCopy := Stat
+		payload := jsonArrayPayload{
+			Results: o.results,
+			Stats:   &statsCopy,
+		}
+		if err := enc.Encode(payload); err != nil {
+			fmt.Fprintf(os.Stderr, "error encoding JSON array: %v\n", err)
+		}
+		return
+	}
+
 	if err := enc.Encode(o.results); err != nil {
 		fmt.Fprintf(os.Stderr, "error encoding JSON array: %v\n", err)
 	}
@@ -153,31 +177,27 @@ func (o *GroupedOutput) Write(result resolver.DomainResult) {
 	o.results = append(o.results, result)
 }
 
-// extractKeyword extracts the keyword from a domain by removing prefixes, suffixes, and TLD
-func (o *GroupedOutput) extractKeyword(domain string) string {
-	// Remove TLD (everything after last dot)
-	parts := strings.Split(domain, ".")
+func (o *GroupedOutput) keywordFor(result resolver.DomainResult) string {
+	if result.Keyword != "" {
+		return result.Keyword
+	}
+	parts := strings.Split(result.Domain, ".")
 	if len(parts) < 2 {
-		return domain
+		return result.Domain
 	}
 	baseName := strings.Join(parts[:len(parts)-1], ".")
-
-	// Try to remove known prefixes
 	for _, prefix := range o.app.Config.Prefixes {
 		if strings.HasPrefix(baseName, prefix) {
 			baseName = strings.TrimPrefix(baseName, prefix)
 			break
 		}
 	}
-
-	// Try to remove known suffixes
 	for _, suffix := range o.app.Config.Suffixes {
 		if strings.HasSuffix(baseName, suffix) {
 			baseName = strings.TrimSuffix(baseName, suffix)
 			break
 		}
 	}
-
 	return baseName
 }
 
@@ -185,7 +205,7 @@ func (o *GroupedOutput) Flush() {
 	// Group domains by keyword
 	grouped := make(map[string][]resolver.DomainResult)
 	for _, result := range o.results {
-		keyword := o.extractKeyword(result.Domain)
+		keyword := o.keywordFor(result)
 		grouped[keyword] = append(grouped[keyword], result)
 	}
 
@@ -244,12 +264,14 @@ func (o *GroupedByTLDOutput) Flush() {
 	// Group domains by TLD
 	grouped := make(map[string][]resolver.DomainResult)
 	for _, result := range o.results {
-		// Extract TLD from domain (everything after the last dot)
-		parts := strings.Split(result.Domain, ".")
-		if len(parts) > 0 {
-			tld := parts[len(parts)-1]
-			grouped[tld] = append(grouped[tld], result)
+		tld := result.TLD
+		if tld == "" {
+			parts := strings.Split(result.Domain, ".")
+			if len(parts) > 0 {
+				tld = parts[len(parts)-1]
+			}
 		}
+		grouped[tld] = append(grouped[tld], result)
 	}
 
 	// Sort TLDs

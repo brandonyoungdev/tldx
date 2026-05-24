@@ -8,6 +8,7 @@ import (
 	"github.com/brandonyoungdev/tldx/internal/config"
 	"github.com/brandonyoungdev/tldx/internal/presets"
 	"github.com/brandonyoungdev/tldx/internal/regex"
+	"github.com/brandonyoungdev/tldx/internal/resolver"
 	"github.com/brandonyoungdev/tldx/internal/strutil"
 	"github.com/brandonyoungdev/tldx/internal/validate"
 	"golang.org/x/net/publicsuffix"
@@ -23,7 +24,7 @@ func NewComposerService(app *config.TldxContext) *ComposerService {
 	}
 }
 
-func (s *ComposerService) Compile(domainsOrKeywords []string) ([]string, []error) {
+func (s *ComposerService) Compile(domainsOrKeywords []string) ([]resolver.DomainSpec, []error) {
 	domainsOrKeywords = strutil.AllToLowerCase(domainsOrKeywords)
 
 	// Expand regex patterns if regex mode is enabled
@@ -40,17 +41,23 @@ func (s *ComposerService) Compile(domainsOrKeywords []string) ([]string, []error
 	// Add any new TLDs found in keywords to the config
 	s.app.Config.TLDs = append(s.app.Config.TLDs, validatedKeywords.NewTlds...)
 
-	domains, warnings := s.GenerateDomainPermutations(validatedKeywords.Keywords)
+	specs, warnings := s.GenerateDomainPermutations(validatedKeywords.Keywords)
 
 	if s.app.Config.MaxDomainLength > 0 {
-		domains = strutil.FilterByMaxLength(domains, s.app.Config.MaxDomainLength)
+		filtered := specs[:0]
+		for _, spec := range specs {
+			if len(spec.Domain) <= s.app.Config.MaxDomainLength {
+				filtered = append(filtered, spec)
+			}
+		}
+		specs = filtered
 	}
 
-	return domains, warnings
+	return specs, warnings
 }
 
-func (s *ComposerService) GenerateDomainPermutations(keywords []string) ([]string, []error) {
-	var result []string
+func (s *ComposerService) GenerateDomainPermutations(keywords []string) ([]resolver.DomainSpec, []error) {
+	var result []resolver.DomainSpec
 	var tlds []string
 	var warnings []error
 
@@ -87,29 +94,43 @@ func (s *ComposerService) GenerateDomainPermutations(keywords []string) ([]strin
 	prefixes := s.app.Config.Prefixes
 	suffixes := s.app.Config.Suffixes
 
-	for _, keyword := range keywords {
-		bases := []string{keyword}
+	type combo struct{ prefix, suffix string }
 
-		// Generate permutations with prefixes and suffixes
+	seen := make(map[string]bool)
+
+	for _, keyword := range keywords {
+		combos := []combo{{"", ""}}
+
 		for _, prefix := range prefixes {
-			bases = append(bases, prefix+keyword)
+			combos = append(combos, combo{prefix, ""})
 			for _, suffix := range suffixes {
-				bases = append(bases, prefix+keyword+suffix)
+				combos = append(combos, combo{prefix, suffix})
 			}
 		}
 		for _, suffix := range suffixes {
-			bases = append(bases, keyword+suffix)
+			combos = append(combos, combo{"", suffix})
 		}
 
-		// Append TLDs to each base
-		for _, base := range bases {
+		for _, c := range combos {
+			base := c.prefix + keyword + c.suffix
 			for _, tld := range tlds {
-				result = append(result, fmt.Sprintf("%s.%s", base, tld))
+				domain := fmt.Sprintf("%s.%s", base, tld)
+				if seen[domain] {
+					continue
+				}
+				seen[domain] = true
+				result = append(result, resolver.DomainSpec{
+					Domain:  domain,
+					Keyword: keyword,
+					Prefix:  c.prefix,
+					Suffix:  c.suffix,
+					TLD:     tld,
+				})
 			}
 		}
 	}
 
-	return strutil.RemoveDuplicates(result), warnings
+	return result, warnings
 }
 
 func (s *ComposerService) expandRegexPatterns(keywords []string) ([]string, error) {

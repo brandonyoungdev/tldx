@@ -6,7 +6,17 @@ import (
 
 	"github.com/brandonyoungdev/tldx/internal/composer"
 	"github.com/brandonyoungdev/tldx/internal/config"
+	"github.com/brandonyoungdev/tldx/internal/resolver"
+	"github.com/stretchr/testify/assert"
 )
+
+func specDomains(specs []resolver.DomainSpec) []string {
+	domains := make([]string, len(specs))
+	for i, s := range specs {
+		domains[i] = s.Domain
+	}
+	return domains
+}
 
 func TestGenerateDomainPermutations(t *testing.T) {
 	tests := []struct {
@@ -69,13 +79,54 @@ func TestGenerateDomainPermutations(t *testing.T) {
 		if len(warning) != 0 {
 			t.Errorf("Unexpected warnings: %v", warning)
 		}
-		if len(result) != len(test.expected) {
-			t.Errorf("Expected %d permutations, got %d", len(test.expected), len(result))
+		domains := specDomains(result)
+		if len(domains) != len(test.expected) {
+			t.Errorf("Expected %d permutations, got %d", len(test.expected), len(domains))
 		}
 		for _, perm := range test.expected {
-			if !slices.Contains(result, perm) {
+			if !slices.Contains(domains, perm) {
 				t.Errorf("Expected permutation %s not found in result", perm)
 			}
 		}
 	}
 }
+
+func TestGenerateDomainPermutations_MetadataFields(t *testing.T) {
+	app := config.NewTldxContext()
+	s := composer.NewComposerService(app)
+	app.Config.TLDs = []string{"com", "io"}
+	app.Config.Prefixes = []string{"get"}
+	app.Config.Suffixes = []string{"ly"}
+
+	specs, warnings := s.GenerateDomainPermutations([]string{"stripe"})
+	assert.Empty(t, warnings)
+	assert.NotEmpty(t, specs)
+
+	byDomain := make(map[string]resolver.DomainSpec)
+	for _, spec := range specs {
+		byDomain[spec.Domain] = spec
+	}
+
+	// bare keyword
+	assert.Equal(t, "stripe", byDomain["stripe.com"].Keyword)
+	assert.Equal(t, "", byDomain["stripe.com"].Prefix)
+	assert.Equal(t, "", byDomain["stripe.com"].Suffix)
+	assert.Equal(t, "com", byDomain["stripe.com"].TLD)
+
+	// with prefix only
+	assert.Equal(t, "stripe", byDomain["getstripe.com"].Keyword)
+	assert.Equal(t, "get", byDomain["getstripe.com"].Prefix)
+	assert.Equal(t, "", byDomain["getstripe.com"].Suffix)
+
+	// with suffix only
+	assert.Equal(t, "stripe", byDomain["stripely.com"].Keyword)
+	assert.Equal(t, "", byDomain["stripely.com"].Prefix)
+	assert.Equal(t, "ly", byDomain["stripely.com"].Suffix)
+
+	// with prefix + suffix
+	assert.Equal(t, "stripe", byDomain["getstripely.io"].Keyword)
+	assert.Equal(t, "get", byDomain["getstripely.io"].Prefix)
+	assert.Equal(t, "ly", byDomain["getstripely.io"].Suffix)
+	assert.Equal(t, "io", byDomain["getstripely.io"].TLD)
+}
+

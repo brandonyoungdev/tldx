@@ -26,11 +26,23 @@ type ResolverService struct {
 	app        *config.TldxContext
 }
 
+type DomainSpec struct {
+	Domain  string
+	Keyword string
+	Prefix  string
+	Suffix  string
+	TLD     string
+}
+
 type DomainResult struct {
 	Domain    string `json:"domain"`
 	Available bool   `json:"available"`
 	Details   string `json:"details,omitempty"`
 	Error     error  `json:"error,omitempty"`
+	Keyword   string `json:"keyword,omitempty"`
+	Prefix    string `json:"prefix,omitempty"`
+	Suffix    string `json:"suffix,omitempty"`
+	TLD       string `json:"tld,omitempty"`
 }
 
 type EncodableDomainResult struct {
@@ -38,6 +50,10 @@ type EncodableDomainResult struct {
 	Available bool   `json:"available"`
 	Details   string `json:"details,omitempty"`
 	Error     string `json:"error,omitempty"`
+	Keyword   string `json:"keyword,omitempty"`
+	Prefix    string `json:"prefix,omitempty"`
+	Suffix    string `json:"suffix,omitempty"`
+	TLD       string `json:"tld,omitempty"`
 }
 
 type CheckResult struct {
@@ -55,6 +71,10 @@ func (result DomainResult) AsEncodable() EncodableDomainResult {
 		Available: result.Available,
 		Details:   result.Details,
 		Error:     errMsg,
+		Keyword:   result.Keyword,
+		Prefix:    result.Prefix,
+		Suffix:    result.Suffix,
+		TLD:       result.TLD,
 	}
 }
 
@@ -299,7 +319,7 @@ func (s *ResolverService) checkWhois(ctx context.Context, domain string) (CheckR
 	}, nil
 }
 
-func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, domains []string) <-chan DomainResult {
+func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, specs []DomainSpec) <-chan DomainResult {
 	resultChan := make(chan DomainResult)
 
 	go func() {
@@ -312,7 +332,7 @@ func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, domains []s
 		}
 		sem := make(chan struct{}, limit)
 
-		for _, domain := range domains {
+		for _, spec := range specs {
 			// Check if parent context is cancelled before starting new goroutine
 			select {
 			case <-ctx.Done():
@@ -333,14 +353,18 @@ func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, domains []s
 				checkCtx, cancel := context.WithTimeout(ctx, s.app.Config.ContextTimeout)
 				defer cancel()
 
-				checkResult, err := s.CheckDomain(checkCtx, domain)
+				checkResult, err := s.CheckDomain(checkCtx, spec.Domain)
 
 				select {
 				case resultChan <- DomainResult{
-					Domain:    domain,
+					Domain:    spec.Domain,
 					Available: !checkResult.Registered,
 					Details:   checkResult.Details,
 					Error:     err,
+					Keyword:   spec.Keyword,
+					Prefix:    spec.Prefix,
+					Suffix:    spec.Suffix,
+					TLD:       spec.TLD,
 				}:
 				case <-ctx.Done():
 					// Context cancelled, don't send result
