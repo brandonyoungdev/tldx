@@ -23,7 +23,7 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 ## 📚 Table of Contents
 
 - [Features](#-features)
-- [Usage](#-usage)
+- [Usage](#️-usage)
 - [Examples](#-examples)
   - [Domain Availability](#domain-availability)
   - [Regex Domain Selection](#regex-domain-selection)
