@@ -10,7 +10,7 @@ import (
 	"github.com/brandonyoungdev/tldx/internal/resolver"
 )
 
-func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []string) bool {
+func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []string, opts ...resolver.ResolverOption) bool {
 
 	composerService := composer.NewComposerService(app)
 	specs, warnings := composerService.Compile(domainsOrKeywords)
@@ -34,7 +34,7 @@ func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []stri
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	resolverService := resolver.NewResolverService(app)
+	resolverService := resolver.NewResolverService(app, opts...)
 	resultChan := resolverService.CheckDomainsStreaming(ctx, specs)
 
 	outputWriter := output.GetOutputWriter(app)

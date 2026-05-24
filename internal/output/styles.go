@@ -27,6 +27,12 @@ func NewStyleService(app *config.TldxContext) *StyleService {
 	return &StyleService{app: app, noColor: noColor}
 }
 
+// NewStyleServiceDirect creates a StyleService with an explicit noColor override.
+// Useful for testing color rendering paths without TTY detection.
+func NewStyleServiceDirect(app *config.TldxContext, noColor bool) *StyleService {
+	return &StyleService{app: app, noColor: noColor}
+}
+
 func (s *StyleService) Available(domain resolver.DomainResult) string {
 	text := fmt.Sprintf("✅ %s is available", domain.Domain)
 	if s.app.Config.Verbose {

@@ -1,4 +1,4 @@
-.PHONY: modernize modernize-fix modernize-check tapes
+.PHONY: modernize modernize-fix modernize-check tapes coverage coverage-html
 
 MODERNIZE_CMD = go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.18.1
 
@@ -17,3 +17,11 @@ tapes:
 		echo "Running $$tape"; \
 		vhs "$$tape"; \
 	done
+
+coverage:
+	go test ./... -coverprofile=coverage.out -covermode=atomic
+	go tool cover -func=coverage.out
+
+coverage-html: coverage
+	go tool cover -html=coverage.out
+

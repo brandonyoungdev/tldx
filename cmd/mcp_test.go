@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -14,6 +15,7 @@ import (
 	"github.com/brandonyoungdev/tldx/internal/config"
 	"github.com/brandonyoungdev/tldx/internal/resolver"
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/openrdap/rdap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -228,6 +230,181 @@ func TestOutput_TTYAutoDetect(t *testing.T) {
 	f := from.Flags().Lookup("no-color")
 	require.NotNil(t, f)
 	assert.Equal(t, "false", f.DefValue)
+}
+
+func TestMCP_ToolConstructors(t *testing.T) {
+	tool := cmd.MCPCheckDomainTool()
+	assert.Equal(t, "check_domain", tool.Name)
+
+	tool2 := cmd.MCPCheckDomainsTool()
+	assert.Equal(t, "check_domains", tool2.Name)
+
+	tool3 := cmd.MCPGenerateAndCheckTool()
+	assert.Equal(t, "generate_and_check", tool3.Name)
+
+	tool4 := cmd.MCPListTLDPresetsTool()
+	assert.Equal(t, "list_tld_presets", tool4.Name)
+}
+
+func TestNewMCPCmd_Structure(t *testing.T) {
+	mcpCmd := cmd.NewMCPCmd("v1.0.0")
+	require.NotNil(t, mcpCmd)
+	assert.Equal(t, "mcp", mcpCmd.Use)
+	assert.NotEmpty(t, mcpCmd.Short)
+	assert.NotEmpty(t, mcpCmd.Long)
+}
+
+func TestMCP_CheckDomainsHandler_WithDomains(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+	defer cancel()
+
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]any{
+		"domains": []any{"stripe.com", "atlas.io"},
+	}
+	result, err := invokeMCPCheckDomains(ctx, req)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+}
+
+func TestMCP_GenerateAndCheck_OnlyAvailableParam(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+	defer cancel()
+
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]any{
+		"keywords":       []any{"testword"},
+		"tlds":           []any{"com"},
+		"only_available": true,
+		"limit":          float64(5),
+	}
+	result, err := invokeMCPGenerateAndCheck(ctx, req)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+}
+
+func TestMCP_GenerateAndCheck_MaxDomainLengthParam(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+	defer cancel()
+
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]any{
+		"keywords":          []any{"hello"},
+		"tlds":              []any{"com"},
+		"max_domain_length": float64(20),
+	}
+	result, err := invokeMCPGenerateAndCheck(ctx, req)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+}
+
+// mockRDAPQuerierForMCP is a simple fixed-response mock for MCP handler injection.
+type mockRDAPQuerierForMCP struct {
+	err error
+}
+
+func (m *mockRDAPQuerierForMCP) Do(_ *rdap.Request) (*rdap.Response, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return &rdap.Response{Object: &rdap.Domain{}}, nil
+}
+
+func withMockFactory(t *testing.T, mockErr error) func() {
+	t.Helper()
+	orig := cmd.ResolverFactory
+	cmd.ResolverFactory = func(app *config.TldxContext, opts ...resolver.ResolverOption) *resolver.ResolverService {
+		return resolver.NewResolverService(app, append(opts,
+			resolver.WithRDAPQuerier(&mockRDAPQuerierForMCP{err: mockErr}),
+		)...)
+	}
+	return func() { cmd.ResolverFactory = orig }
+}
+
+func TestMCP_CheckDomains_WithMockedResolver(t *testing.T) {
+	restore := withMockFactory(t, fmt.Errorf("object does not exist."))
+	defer restore()
+
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]any{
+		"domains": []any{"available1.com", "available2.io"},
+	}
+	result, err := invokeMCPCheckDomains(context.Background(), req)
+	require.NoError(t, err)
+	require.False(t, result.IsError)
+
+	text := extractTextContent(t, result)
+	var results []map[string]any
+	require.NoError(t, json.Unmarshal([]byte(text), &results))
+	assert.Len(t, results, 2)
+	for _, r := range results {
+		assert.Equal(t, true, r["available"])
+	}
+}
+
+func TestMCP_GenerateAndCheck_WithMockedResolver(t *testing.T) {
+	restore := withMockFactory(t, fmt.Errorf("object does not exist."))
+	defer restore()
+
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]any{
+		"keywords": []any{"testword"},
+		"tlds":     []any{"com"},
+	}
+	result, err := invokeMCPGenerateAndCheck(context.Background(), req)
+	require.NoError(t, err)
+	require.False(t, result.IsError)
+
+	text := extractTextContent(t, result)
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal([]byte(text), &payload))
+	results, ok := payload["results"].([]any)
+	require.True(t, ok)
+	assert.NotEmpty(t, results)
+}
+
+func TestMCP_GenerateAndCheck_OnlyAvailableFilters(t *testing.T) {
+	// Use a mock that marks all domains as registered (available=false)
+	restore := withMockFactory(t, nil) // err=nil means registered
+	defer restore()
+
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]any{
+		"keywords":       []any{"taken"},
+		"tlds":           []any{"com"},
+		"only_available": true,
+	}
+	result, err := invokeMCPGenerateAndCheck(context.Background(), req)
+	require.NoError(t, err)
+	require.False(t, result.IsError)
+
+	text := extractTextContent(t, result)
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal([]byte(text), &payload))
+	results := payload["results"]
+	// All domains are registered, only_available=true → results should be empty
+	assert.Nil(t, results)
+}
+
+func TestMCP_GenerateAndCheck_LimitStopsEarly(t *testing.T) {
+	restore := withMockFactory(t, fmt.Errorf("object does not exist."))
+	defer restore()
+
+	req := mcp.CallToolRequest{}
+	req.Params.Arguments = map[string]any{
+		"keywords": []any{"word1", "word2", "word3"},
+		"tlds":     []any{"com", "io", "ai"},
+		"limit":    float64(1),
+	}
+	result, err := invokeMCPGenerateAndCheck(context.Background(), req)
+	require.NoError(t, err)
+	require.False(t, result.IsError)
+
+	text := extractTextContent(t, result)
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal([]byte(text), &payload))
+	total := int(payload["total"].(float64))
+	assert.Equal(t, 1, total, "limit=1 should stop after first available domain")
 }
 
 func invokeMCPCheckDomain(ctx context.Context, domain string) (*mcp.CallToolResult, error) {

@@ -130,3 +130,106 @@ func TestGenerateDomainPermutations_MetadataFields(t *testing.T) {
 	assert.Equal(t, "io", byDomain["getstripely.io"].TLD)
 }
 
+func TestCompile_MaxDomainLength(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.MaxDomainLength = 10 // e.g. "ab.com" = 6, "abcdefgh.com" = 12
+	s := composer.NewComposerService(app)
+
+	specs, warnings := s.Compile([]string{"ab", "abcdefgh"})
+	assert.Empty(t, warnings)
+
+	domains := specDomains(specs)
+	assert.Contains(t, domains, "ab.com")
+	assert.NotContains(t, domains, "abcdefgh.com")
+}
+
+func TestCompile_TLDPreset_Popular(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDPreset = "popular"
+	s := composer.NewComposerService(app)
+
+	specs, warnings := s.Compile([]string{"test"})
+	assert.Empty(t, warnings)
+
+	domains := specDomains(specs)
+	// "popular" preset includes com, net, org, io, dev, app, ai
+	assert.Contains(t, domains, "test.com")
+	assert.Contains(t, domains, "test.io")
+	assert.Contains(t, domains, "test.dev")
+}
+
+func TestCompile_TLDPreset_Invalid(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDPreset = "doesnotexist"
+	s := composer.NewComposerService(app)
+
+	specs, warnings := s.Compile([]string{"test"})
+	// Should get a warning about the invalid preset
+	assert.NotEmpty(t, warnings)
+	// Should still return results (falls back to com)
+	assert.NotEmpty(t, specs)
+}
+
+func TestCompile_RegexMode_LiteralPassthrough(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.Regex = true
+	s := composer.NewComposerService(app)
+
+	// A plain word without regex special chars should pass through as-is
+	specs, warnings := s.Compile([]string{"hello"})
+	assert.Empty(t, warnings)
+
+	domains := specDomains(specs)
+	assert.Contains(t, domains, "hello.com")
+}
+
+func TestCompile_RegexMode_CharacterClass(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.Regex = true
+	s := composer.NewComposerService(app)
+
+	// [ab] should expand to "a" and "b"
+	specs, warnings := s.Compile([]string{"[ab]"})
+	assert.Empty(t, warnings)
+
+	domains := specDomains(specs)
+	assert.Contains(t, domains, "a.com")
+	assert.Contains(t, domains, "b.com")
+}
+
+func TestCompile_RegexMode_UnsafePattern_Skipped(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.Regex = true
+	app.Config.Verbose = true // triggers slog.Warn inside logUnsafePattern
+	s := composer.NewComposerService(app)
+
+	// [a-z]{6} = 26^6 = 308M combinations — exceeds 500K limit, should be skipped
+	specs, warnings := s.Compile([]string{"[a-z]{6}"})
+	assert.Empty(t, warnings) // unsafe patterns are silently skipped, not an error
+	assert.Empty(t, specs)    // no domains generated for an unsafe pattern
+}
+
+func TestCompile_RegexMode_InvalidPattern_ReturnsError(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.Regex = true
+	s := composer.NewComposerService(app)
+
+	// Unclosed character class is an invalid pattern
+	specs, warnings := s.Compile([]string{"[unclosed"})
+	assert.NotEmpty(t, warnings)
+	assert.Nil(t, specs)
+}
+
+
+
+func TestCompile_RegexMode_UnsafePattern_VerboseOff(t *testing.T) {
+app := config.NewTldxContext()
+app.Config.Regex = true
+app.Config.Verbose = false // triggers early return in logUnsafePattern
+s := composer.NewComposerService(app)
+
+// Same unsafe pattern — skipped, but takes the Verbose=false early return path
+specs, warnings := s.Compile([]string{"[a-z]{6}"})
+assert.Empty(t, warnings)
+assert.Empty(t, specs)
+}
