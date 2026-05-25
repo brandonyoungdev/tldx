@@ -15,7 +15,6 @@ func main() {
 
 	rootCmd := cmd.NewRootCmd(app)
 
-	// Use Fang for graceful shutdown handling
 	if err := fang.Execute(
 		context.Background(),
 		rootCmd,

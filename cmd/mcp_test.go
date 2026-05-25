@@ -298,7 +298,6 @@ func TestMCP_GenerateAndCheck_MaxDomainLengthParam(t *testing.T) {
 	assert.NotNil(t, result)
 }
 
-// mockRDAPQuerierForMCP is a simple fixed-response mock for MCP handler injection.
 type mockRDAPQuerierForMCP struct {
 	err error
 }
