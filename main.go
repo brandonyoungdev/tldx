@@ -5,9 +5,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/charmbracelet/fang"
 	"github.com/brandonyoungdev/tldx/cmd"
 	"github.com/brandonyoungdev/tldx/internal/config"
+	"github.com/charmbracelet/fang"
 )
 
 func main() {

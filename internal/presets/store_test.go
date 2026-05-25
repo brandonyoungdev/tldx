@@ -121,9 +121,9 @@ func TestShowAllPresets_OutputContainsNames(t *testing.T) {
 
 func TestShowAllPresets_AlphabeticOrder(t *testing.T) {
 	builtin := map[string]TLDPreset{
-		"zebra":  {"z"},
-		"apple":  {"a"},
-		"mango":  {"m"},
+		"zebra": {"z"},
+		"apple": {"a"},
+		"mango": {"m"},
 	}
 	ps := presets.NewTypedStore("TLD", builtin)
 
@@ -180,4 +180,3 @@ func TestShowAllPresets_LongTLDListWraps(t *testing.T) {
 		t.Errorf("Expected multiple lines for wrapped output, got %d lines", lineCount)
 	}
 }
-

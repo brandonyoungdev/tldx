@@ -58,13 +58,13 @@ func TestValidateKeywords(t *testing.T) {
 }
 
 func TestValidateKeywords_InvalidKeywordSkipped(t *testing.T) {
-// "@invalid" fails IsValidDomainOrKeyword → triggers the continue branch
-input := []string{"valid", "@invalid", "also-valid"}
-result := validate.ValidateKeywords(input)
-if slices.Contains(result.Keywords, "@invalid") {
-t.Error("expected @invalid to be skipped")
-}
-if !slices.Contains(result.Keywords, "valid") || !slices.Contains(result.Keywords, "also-valid") {
-t.Error("expected valid keywords to be present")
-}
+	// "@invalid" fails IsValidDomainOrKeyword → triggers the continue branch
+	input := []string{"valid", "@invalid", "also-valid"}
+	result := validate.ValidateKeywords(input)
+	if slices.Contains(result.Keywords, "@invalid") {
+		t.Error("expected @invalid to be skipped")
+	}
+	if !slices.Contains(result.Keywords, "valid") || !slices.Contains(result.Keywords, "also-valid") {
+		t.Error("expected valid keywords to be present")
+	}
 }

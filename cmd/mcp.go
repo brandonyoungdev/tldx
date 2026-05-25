@@ -130,10 +130,10 @@ var MCPCheckDomainsHandler = checkDomainsHandler
 var MCPGenerateAndCheckHandler = generateAndCheckHandler
 var MCPListTLDPresetsHandler = listTLDPresetsHandler
 
-var MCPCheckDomainTool      = checkDomainTool
-var MCPCheckDomainsTool     = checkDomainsTool
+var MCPCheckDomainTool = checkDomainTool
+var MCPCheckDomainsTool = checkDomainsTool
 var MCPGenerateAndCheckTool = generateAndCheckTool
-var MCPListTLDPresetsTool   = listTLDPresetsTool
+var MCPListTLDPresetsTool = listTLDPresetsTool
 
 // ResolverFactory creates a resolver service. Overridable in tests for dependency injection.
 var ResolverFactory = func(app *config.TldxContext, opts ...resolver.ResolverOption) *resolver.ResolverService {
