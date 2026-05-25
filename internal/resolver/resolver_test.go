@@ -318,4 +318,3 @@ func TestWithRetry_RetryOnRetryableError(t *testing.T) {
 		t.Errorf("Expected 2 attempts (1 retry), got %d", attempts)
 	}
 }
-

@@ -456,19 +456,17 @@ func TestStyleService_NotAvailable_Verbose(t *testing.T) {
 	assert.Contains(t, out, "RDAP registered")
 }
 
-
-
 func TestGroupedOutput_KeywordFor_NoDot(t *testing.T) {
-app := config.NewTldxContext()
-app.Config.NoColor = true
-out := output.NewGroupedOutput(app)
+	app := config.NewTldxContext()
+	app.Config.NoColor = true
+	out := output.NewGroupedOutput(app)
 
-// Domain with no dot — keywordFor falls back to the domain itself (len(parts) < 2)
-out.Write(resolver.DomainResult{
-Domain:    "nodot",
-Keyword:   "",
-Available: true,
-})
-result := captureStdout(func() { out.Flush() })
-assert.Contains(t, result, "nodot")
+	// Domain with no dot — keywordFor falls back to the domain itself (len(parts) < 2)
+	out.Write(resolver.DomainResult{
+		Domain:    "nodot",
+		Keyword:   "",
+		Available: true,
+	})
+	result := captureStdout(func() { out.Flush() })
+	assert.Contains(t, result, "nodot")
 }

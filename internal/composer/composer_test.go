@@ -220,16 +220,14 @@ func TestCompile_RegexMode_InvalidPattern_ReturnsError(t *testing.T) {
 	assert.Nil(t, specs)
 }
 
-
-
 func TestCompile_RegexMode_UnsafePattern_VerboseOff(t *testing.T) {
-app := config.NewTldxContext()
-app.Config.Regex = true
-app.Config.Verbose = false // triggers early return in logUnsafePattern
-s := composer.NewComposerService(app)
+	app := config.NewTldxContext()
+	app.Config.Regex = true
+	app.Config.Verbose = false // triggers early return in logUnsafePattern
+	s := composer.NewComposerService(app)
 
-// Same unsafe pattern — skipped, but takes the Verbose=false early return path
-specs, warnings := s.Compile([]string{"[a-z]{6}"})
-assert.Empty(t, warnings)
-assert.Empty(t, specs)
+	// Same unsafe pattern — skipped, but takes the Verbose=false early return path
+	specs, warnings := s.Compile([]string{"[a-z]{6}"})
+	assert.Empty(t, warnings)
+	assert.Empty(t, specs)
 }
