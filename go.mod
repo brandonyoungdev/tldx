@@ -16,6 +16,7 @@ require (
 
 require (
 	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251106193318-19329a3e8410 // indirect
+	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/alecthomas/kingpin/v2 v2.4.0 // indirect
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect

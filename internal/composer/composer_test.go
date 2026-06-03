@@ -200,21 +200,17 @@ func TestCompile_RegexMode_CharacterClass(t *testing.T) {
 func TestCompile_RegexMode_UnsafePattern_Skipped(t *testing.T) {
 	app := config.NewTldxContext()
 	app.Config.Regex = true
-	app.Config.Verbose = true // triggers slog.Warn inside logUnsafePattern
+	app.Config.Verbose = true
 	s := composer.NewComposerService(app)
-
-	// [a-z]{6} = 26^6 = 308M combinations — exceeds 500K limit, should be skipped
 	specs, warnings := s.Compile([]string{"[a-z]{6}"})
-	assert.Empty(t, warnings) // unsafe patterns are silently skipped, not an error
-	assert.Empty(t, specs)    // no domains generated for an unsafe pattern
+	assert.Empty(t, warnings)
+	assert.Empty(t, specs)
 }
 
 func TestCompile_RegexMode_InvalidPattern_ReturnsError(t *testing.T) {
 	app := config.NewTldxContext()
 	app.Config.Regex = true
 	s := composer.NewComposerService(app)
-
-	// Unclosed character class is an invalid pattern
 	specs, warnings := s.Compile([]string{"[unclosed"})
 	assert.NotEmpty(t, warnings)
 	assert.Nil(t, specs)
@@ -223,10 +219,8 @@ func TestCompile_RegexMode_InvalidPattern_ReturnsError(t *testing.T) {
 func TestCompile_RegexMode_UnsafePattern_VerboseOff(t *testing.T) {
 	app := config.NewTldxContext()
 	app.Config.Regex = true
-	app.Config.Verbose = false // triggers early return in logUnsafePattern
+	app.Config.Verbose = false
 	s := composer.NewComposerService(app)
-
-	// Same unsafe pattern — skipped, but takes the Verbose=false early return path
 	specs, warnings := s.Compile([]string{"[a-z]{6}"})
 	assert.Empty(t, warnings)
 	assert.Empty(t, specs)

@@ -8,6 +8,8 @@ import (
 	"github.com/brandonyoungdev/tldx/internal/config"
 	"github.com/brandonyoungdev/tldx/internal/domain"
 	"github.com/brandonyoungdev/tldx/internal/input"
+	"github.com/brandonyoungdev/tldx/internal/presets"
+	"github.com/brandonyoungdev/tldx/internal/userconfig"
 	"github.com/spf13/cobra"
 )
 
@@ -31,6 +33,17 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 		Version:      Version,
 		Args:         cobra.MinimumNArgs(0),
 		SilenceUsage: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := userconfig.Load()
+			if err != nil {
+				slog.Warn("Could not load user presets", "error", err)
+				return nil
+			}
+			for name, entry := range cfg.Presets {
+				presets.TLDs.Override(name, entry.TLDs)
+			}
+			return nil
+		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if app.Config.MaxDomainLength <= 0 {
 				slog.Error("Invalid max-domain-length provided. Pick a positive number please.")
@@ -71,6 +84,7 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 	bindFlags(cmd, app)
 	cmd.AddCommand(NewShowPresetsCmd())
 	cmd.AddCommand(NewMCPCmd(Version))
+	cmd.AddCommand(NewPresetCmd())
 	return cmd
 }
 
