@@ -38,14 +38,10 @@ func TestIsRetryable(t *testing.T) {
 }
 
 func TestCheckIfDNSResolves_NativePath_UnknownDomain(t *testing.T) {
-	svc := &ResolverService{} // no dnsLookupFn — uses net.Resolver
+	svc := &ResolverService{}
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
-
-	// A definitely-nonexistent domain. Will fail with DNS error or timeout.
 	_, err := svc.checkIfDNSResolves(ctx, "this-domain-absolutely-does-not-exist-xyzzy-12345.invalid")
-	// We expect either an error (NXDOMAIN, timeout) or false — both are valid.
-	// The important thing is the native path (lines 270-275) is exercised.
 	_ = err
 }
 
@@ -60,7 +56,6 @@ func TestQueryDomainContext_UnexpectedObjectType(t *testing.T) {
 	}
 }
 
-// mockUnexpectedRDAPQuerier returns a Nameserver object instead of a Domain.
 type mockUnexpectedRDAPQuerier struct{}
 
 func (m *mockUnexpectedRDAPQuerier) Do(_ *rdap.Request) (*rdap.Response, error) {

@@ -29,6 +29,7 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
   - [Domain Availability](#domain-availability)
   - [Regex Domain Selection](#regex-domain-selection)
   - [Presets](#presets)
+  - [Custom Presets](#custom-presets)
   - [Permutations](#permutations)
   - [Brace Expansion](#brace-expansion-macos-linux)
   - [Show Only Available Domains](#show-only-available-domains)
@@ -46,7 +47,7 @@ tldx openai -p get,use -s ly,hub -t com,io,ai --only-available
 - 🚀 Fast and concurrent availability checks with RDAP
 - 📤 Streams results as they're found
 - 📦 Multiple output formats: `text`, `json`, `json-stream`, `json-array`, `csv`, `grouped`, `grouped-tld`
-- 🔧 TLD presets to quickly select curated TLD sets
+- 🔧 TLD presets (built-in and custom) to quickly select curated TLD sets
 - 📏 Optional filtering by domain length
 - 🤖 MCP server (`tldx mcp`) for AI agent integration
 
@@ -62,6 +63,7 @@ Available Commands:
   completion       Generate the autocompletion script for the specified shell
   help             Help about any command
   mcp              Start an MCP (Model Context Protocol) server over stdio
+  preset           Manage custom TLD presets
   show-tld-presets Show available TLD presets
 
 Flags:
@@ -168,9 +170,59 @@ tech                    io ai gg app dev tech codes tools cloud games
 
 ```
 
-### Permutations
+### Custom Presets
+
+Save your own TLD presets and reuse them across runs:
 
 ```sh
+# Create a preset
+$ tldx preset add myteam com io ai
+Saved preset "myteam" (com, io, ai) → ~/.config/tldx/presets.toml
+
+# Comma-separated also works
+$ tldx preset add myteam com,io,ai
+
+# Use it just like any built-in preset
+$ tldx mystartup --tld-preset myteam
+  ❌ mystartup.com is not available
+  ✔️  mystartup.io is available
+  ✔️  mystartup.ai is available
+```
+
+```sh
+# List all presets.
+$ tldx preset list
+
+TLD Presets  (* = custom):
+
+all                       (use all available TLDs)
+
+myteam *                  ai io com
+popular                   ai io app com dev net org
+...
+
+Config file: ~/.config/tldx/presets.toml
+```
+
+```sh
+# Remove a custom preset
+$ tldx preset remove myteam
+Removed preset "myteam"
+```
+
+Presets are stored in `~/.config/tldx/presets.toml` (macOS/Linux) or `%APPDATA%\tldx\presets.toml` (Windows). You can also edit the file directly:
+
+```toml
+[presets.myteam]
+tlds = ["com", "io", "ai"]
+
+[presets.saas]
+tlds = ["com", "io", "app", "dev"]
+```
+
+Set the `TLDX_CONFIG` environment variable to override the default config file location.
+
+### Permutations```sh
 $ tldx google --prefixes get,my --suffixes ly,hub --tlds com,io,ai
   ✔️  mygooglely.com is available
   ✔️  getgooglely.ai is available

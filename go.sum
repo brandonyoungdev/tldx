@@ -1,5 +1,7 @@
 charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251106193318-19329a3e8410 h1:D9PbaszZYpB4nj+d6HTWr1onlmlyuGVNfL9gAi8iB3k=
 charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251106193318-19329a3e8410/go.mod h1:1qZyvvVCenJO2M1ac2mX0yyiIZJoZmDM4DG4s0udJkU=
+github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk=
+github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/alecthomas/kingpin/v2 v2.4.0 h1:f48lwail6p8zpO1bC4TxtqACaGqHYA22qkHjHpqDjYY=
 github.com/alecthomas/kingpin/v2 v2.4.0/go.mod h1:0gyi0zQnjuFk8xrkNKamJoyUo382HRL7ATRpFZCw6tE=
 github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b h1:mimo19zliBX/vSQ6PWWSL9lK8qwHozUj03+zLoEB8O0=

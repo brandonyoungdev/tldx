@@ -170,7 +170,7 @@ func TestCheckDomainsStreaming_CancelledContext(t *testing.T) {
 	s := resolver.NewResolverService(app)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	cancel() // cancel immediately
+	cancel()
 
 	specs := []resolver.DomainSpec{
 		{Domain: "example.com", Keyword: "example", TLD: "com"},
@@ -178,7 +178,6 @@ func TestCheckDomainsStreaming_CancelledContext(t *testing.T) {
 	}
 
 	ch := s.CheckDomainsStreaming(ctx, specs)
-	// Drain channel — should complete without deadlock even when cancelled
 	for range ch {
 	}
 }

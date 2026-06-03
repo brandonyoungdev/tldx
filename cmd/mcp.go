@@ -82,7 +82,7 @@ Example: keyword="stripe", prefixes=["get"], suffixes=["ly"], tlds=["com","io"]
 produces: stripe.com, stripe.io, getstripe.com, getstripe.io, stripely.com, stripely.io, getstripely.com, getstripely.io
 
 Each result includes keyword/prefix/suffix/tld metadata so agents can reason about which patterns work best.
-All parameters are named — do NOT pass them as positional array items.`),
+All parameters are named. Do NOT pass them as positional array items.`),
 		mcp.WithArray("keywords",
 			mcp.Required(),
 			mcp.Description("Base keywords to build domain names from (e.g. [\"stripe\", \"atlas\"]). For very large lists, consider multiple calls to avoid network timeouts."),

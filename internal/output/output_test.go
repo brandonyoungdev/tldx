@@ -378,7 +378,6 @@ func TestGroupedOutput_KeywordFallback_FromDomain(t *testing.T) {
 	app.Config.Suffixes = []string{"ly"}
 	w := output.NewGroupedOutput(app)
 
-	// No keyword set — should derive from domain
 	w.Write(resolver.DomainResult{Domain: "getstripely.com", Available: true})
 	out := captureStdout(func() { w.Flush() })
 	assert.NotEmpty(t, out)
@@ -423,7 +422,6 @@ func TestGroupedByTLDOutput_TLDFallbackFromDomain(t *testing.T) {
 	app.Config.NoColor = true
 	w := output.NewGroupedByTLDOutput(app)
 
-	// No TLD field set — should parse from domain string
 	w.Write(resolver.DomainResult{Domain: "stripe.dev", Available: true})
 	out := captureStdout(func() { w.Flush() })
 	assert.Contains(t, out, ".dev")
@@ -431,9 +429,8 @@ func TestGroupedByTLDOutput_TLDFallbackFromDomain(t *testing.T) {
 
 func TestStyleService_Styled_WithColor(t *testing.T) {
 	app := config.NewTldxContext()
-	svc := output.NewStyleServiceDirect(app, false) // noColor=false → renders with lipgloss
+	svc := output.NewStyleServiceDirect(app, false)
 	result := svc.Styled("hello", "10")
-	// lipgloss renders ANSI escape codes; the original text should still be present
 	assert.Contains(t, result, "hello")
 }
 
@@ -461,7 +458,6 @@ func TestGroupedOutput_KeywordFor_NoDot(t *testing.T) {
 	app.Config.NoColor = true
 	out := output.NewGroupedOutput(app)
 
-	// Domain with no dot — keywordFor falls back to the domain itself (len(parts) < 2)
 	out.Write(resolver.DomainResult{
 		Domain:    "nodot",
 		Keyword:   "",
