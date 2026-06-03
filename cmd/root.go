@@ -82,7 +82,6 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 	}
 
 	bindFlags(cmd, app)
-	cmd.AddCommand(NewShowPresetsCmd())
 	cmd.AddCommand(NewMCPCmd(Version))
 	cmd.AddCommand(NewPresetCmd())
 	return cmd

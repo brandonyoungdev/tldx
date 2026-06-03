@@ -64,7 +64,6 @@ Available Commands:
   help             Help about any command
   mcp              Start an MCP (Model Context Protocol) server over stdio
   preset           Manage custom TLD presets
-  show-tld-presets Show available TLD presets
 
 Flags:
       --dry-run                 Print domains that would be checked without making network calls
@@ -152,9 +151,9 @@ $ tldx google --tld-preset geo
 
 You can see all available presets:
 ```sh
-$ tldx show-tld-presets
+$ tldx preset list
 
-TLD Presets:
+TLD Presets  (* = custom):
 
 all                     (use all available TLDs)
 
