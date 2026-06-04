@@ -37,7 +37,6 @@ func TestCheckAvailability_Timeout(t *testing.T) {
 	}
 }
 
-// mockRDAPQuerier implements the unexported rdapQuerier interface for testing.
 type mockRDAPQuerier struct {
 	resp *rdap.Response
 	err  error
@@ -141,7 +140,6 @@ Creation Date: 2020-01-01
 	)
 
 	result, err := s.CheckDomain(context.Background(), "example-whois.com")
-	// WHOIS parse might fail on simple test data; we just want no panic and valid result
 	_ = err
 	_ = result
 }
@@ -282,6 +280,66 @@ func TestCheckDomain_DNSErrorFallsToWhois(t *testing.T) {
 	}
 	if result.Registered {
 		t.Error("Expected domain to be unregistered (DNS error + WHOIS not found)")
+	}
+}
+
+func TestCheckDomainsStreaming_CancelMidStream(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.MaxRetries = 0
+	app.Config.ContextTimeout = 5 * time.Second
+	app.Config.ConcurrencyLimit = 4
+
+	slow := &mockRDAPQuerierFunc{
+		fn: func(req *rdap.Request) (*rdap.Response, error) {
+			<-req.Context().Done()
+			return nil, req.Context().Err()
+		},
+	}
+
+	s := resolver.NewResolverService(app, resolver.WithRDAPQuerier(slow))
+
+	specs := make([]resolver.DomainSpec, 20)
+	for i := range specs {
+		specs[i] = resolver.DomainSpec{Domain: fmt.Sprintf("domain%d.com", i), TLD: "com"}
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	ch := s.CheckDomainsStreaming(ctx, specs)
+
+	time.AfterFunc(20*time.Millisecond, cancel)
+
+	for range ch {
+	}
+}
+
+func TestCheckDomainsStreaming_CancelWhileSemaphoreFull(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.MaxRetries = 0
+	app.Config.ContextTimeout = 5 * time.Second
+	app.Config.ConcurrencyLimit = 1
+
+	slow := &mockRDAPQuerierFunc{
+		fn: func(req *rdap.Request) (*rdap.Response, error) {
+			<-req.Context().Done()
+			return nil, req.Context().Err()
+		},
+	}
+
+	s := resolver.NewResolverService(app, resolver.WithRDAPQuerier(slow))
+
+	specs := make([]resolver.DomainSpec, 10)
+	for i := range specs {
+		specs[i] = resolver.DomainSpec{Domain: fmt.Sprintf("slow%d.com", i), TLD: "com"}
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	ch := s.CheckDomainsStreaming(ctx, specs)
+
+	time.AfterFunc(20*time.Millisecond, cancel)
+
+	for range ch {
 	}
 }
 
