@@ -373,15 +373,19 @@ func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, specs []Dom
 		}
 		sem := make(chan struct{}, limit)
 
+	loop:
 		for _, spec := range specs {
-			// Check if parent context is cancelled before starting new goroutine
 			select {
 			case <-ctx.Done():
-				return
+				break loop
 			default:
 			}
 
-			sem <- struct{}{}
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				break loop
+			}
 			wg.Add(1)
 
 			go func() {
@@ -390,7 +394,6 @@ func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, specs []Dom
 					wg.Done()
 				}()
 
-				// Create timeout context from parent context
 				checkCtx, cancel := context.WithTimeout(ctx, s.app.Config.ContextTimeout)
 				defer cancel()
 
