@@ -2,6 +2,8 @@
 
 # tldx
 
+[![MCP Toplist](https://mcptoplist.com/badge/glama%2Fbrandonyoungdev%2Ftldx.svg)](https://mcptoplist.com/server/glama%2Fbrandonyoungdev%2Ftldx)
+
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/brandonyoungdev/tldx)
 ![Tests](https://img.shields.io/github/actions/workflow/status/brandonyoungdev/tldx/test.yml?branch=main)
 ![GitHub](https://img.shields.io/github/license/brandonyoungdev/tldx)
