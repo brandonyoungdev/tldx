@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/brandonyoungdev/tldx/compare/v1.5.0...v1.6.0) (2026-08-13)
+
+
+### Bug Fixes
+
+* mcp race condition ([#130](https://github.com/brandonyoungdev/tldx/issues/130)) ([87d16f9](https://github.com/brandonyoungdev/tldx/commit/87d16f9acced369a562daf6eaf97f2ceff90111c))
+
+
+### Features
+
+* config defaults, mcp simplification & guards, forsale ([#144](https://github.com/brandonyoungdev/tldx/issues/144)) ([14b184b](https://github.com/brandonyoungdev/tldx/commit/14b184bab6f09c0d1755a7c3ba73a320a586fb81))
+
 # [1.5.0](https://github.com/brandonyoungdev/tldx/compare/v1.4.0...v1.5.0) (2026-06-03)
 
 
