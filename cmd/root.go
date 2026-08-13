@@ -17,6 +17,8 @@ var Version = "dev"
 
 var ErrNoAvailableDomains = errors.New("no available domains found")
 
+var ErrNoDomainsForSale = errors.New("no domains for sale found")
+
 func NewRootCmd(app *config.TldxContext) *cobra.Command {
 	asciiArt := `
   _   _     _      
@@ -26,6 +28,9 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
  | |_| | (_| |>  < 
   \__|_|\__,_/_/\_\
 `
+	// Loaded in PersistentPreRunE, read back in PreRunE.
+	userCfg := &userconfig.UserConfig{}
+
 	cmd := &cobra.Command{
 		Use:          "tldx [keywords]",
 		Short:        "Domain availability checker and ideation tool",
@@ -36,15 +41,18 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := userconfig.Load()
 			if err != nil {
-				slog.Warn("Could not load user presets", "error", err)
+				slog.Warn("Could not load user config", "error", err)
 				return nil
 			}
+			userCfg = cfg
 			for name, entry := range cfg.Presets {
 				presets.TLDs.Override(name, entry.TLDs)
 			}
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			userCfg.Defaults.ApplyTo(app.Config, cmd.Flags().Changed)
+
 			if app.Config.MaxDomainLength <= 0 {
 				slog.Error("Invalid max-domain-length provided. Pick a positive number please.")
 				return fmt.Errorf("invalid max-domain-length: must be a positive number")
@@ -54,6 +62,9 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 					fmt.Println("Unknown output format. Defaulting to text.")
 				}
 				app.Config.OutputFormat = "text"
+			}
+			if app.Config.OnlyForSale {
+				app.Config.CheckForSale = true
 			}
 			return nil
 		},
@@ -74,7 +85,10 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 
 			found := domain.Exec(cmd.Context(), app, args)
 
-			if app.Config.OnlyAvailable && !found && !app.Config.DryRun {
+			if (app.Config.OnlyAvailable || app.Config.OnlyForSale) && !found && !app.Config.DryRun {
+				if app.Config.OnlyForSale && !app.Config.OnlyAvailable {
+					return ErrNoDomainsForSale
+				}
 				return ErrNoAvailableDomains
 			}
 			return nil
@@ -84,6 +98,7 @@ func NewRootCmd(app *config.TldxContext) *cobra.Command {
 	bindFlags(cmd, app)
 	cmd.AddCommand(NewMCPCmd(Version))
 	cmd.AddCommand(NewPresetCmd())
+	cmd.AddCommand(NewConfigCmd())
 	return cmd
 }
 
@@ -103,4 +118,6 @@ func bindFlags(cmd *cobra.Command, app *config.TldxContext) {
 	cmd.Flags().BoolVarP(&cfg.Regex, "regex", "r", false, "Enable regex pattern matching for domain keywords")
 	cmd.Flags().IntVarP(&cfg.Limit, "limit", "l", 0, "Stop after finding this many available domains (0 = no limit)")
 	cmd.Flags().BoolVar(&cfg.DryRun, "dry-run", false, "Print domains that would be checked without making network calls")
+	cmd.Flags().BoolVar(&cfg.CheckForSale, "for-sale", false, "Check taken domains for an RFC 10023 _for-sale TXT record")
+	cmd.Flags().BoolVar(&cfg.OnlyForSale, "only-for-sale", false, "Show only taken domains that are for sale (implies --for-sale)")
 }

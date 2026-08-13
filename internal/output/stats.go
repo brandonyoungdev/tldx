@@ -10,6 +10,7 @@ type Stats struct {
 	Total        int
 	Available    int
 	NotAvailable int
+	ForSale      int
 	TimedOut     int
 	Errored      int
 }
@@ -41,6 +42,10 @@ func RenderStatsSummary() string {
 		{"❌", Stat.NotAvailable, "taken", "9"},   // Red
 		{"⏳", Stat.TimedOut, "timed out", "12"},  // Intense Yellow
 		{"🟡", Stat.Errored, "errored", "3"},      // Yellow
+	}
+
+	if Stat.ForSale > 0 {
+		stats = append(stats, statRow{"💰", Stat.ForSale, "for sale", "13"}) // Magenta
 	}
 
 	var blocks []string

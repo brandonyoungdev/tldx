@@ -3,8 +3,10 @@ package output
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/brandonyoungdev/tldx/internal/config"
+	"github.com/brandonyoungdev/tldx/internal/forsale"
 	"github.com/brandonyoungdev/tldx/internal/resolver"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -47,6 +49,59 @@ func (s *StyleService) NotAvailable(domain resolver.DomainResult) string {
 		text = fmt.Sprintf("%s - %v", text, domain.Details)
 	}
 	return s.Styled(text, "9") // red
+}
+
+func (s *StyleService) ForSale(domain resolver.DomainResult) string {
+	text := fmt.Sprintf("💰 %s is taken but for sale", domain.Domain)
+
+	if details := s.forSaleDetails(domain.ForSale); details != "" {
+		text = fmt.Sprintf("%s — %s", text, details)
+	}
+
+	return s.Styled(text, "13") // magenta
+}
+
+func (s *StyleService) forSaleDetails(info *forsale.Info) string {
+	if info == nil {
+		return ""
+	}
+
+	var parts []string
+	for _, price := range info.Prices {
+		parts = append(parts, price.String())
+	}
+	parts = append(parts, info.TrustedURIs()...)
+
+	if s.app.Config.Verbose {
+		parts = append(parts, info.Texts...)
+		parts = append(parts, info.Codes...)
+		for _, uri := range info.UntrustedURIs() {
+			parts = append(parts, fmt.Sprintf("unverified scheme: %s", uri))
+		}
+	}
+
+	return strings.Join(parts, " · ")
+}
+
+// Render formats a result for the text output modes. The second return value
+// reports whether the line should be printed at all.
+func (s *StyleService) Render(result resolver.DomainResult) (string, bool) {
+	switch {
+	case result.Error != nil:
+		if s.app.Config.OnlyAvailable && !s.app.Config.Verbose {
+			return "", false
+		}
+		return s.Errored(result.Domain, result.Error), true
+	case result.Available:
+		return s.Available(result), true
+	case result.ForSale != nil:
+		return s.ForSale(result), true
+	default:
+		if s.app.Config.OnlyAvailable || s.app.Config.OnlyForSale {
+			return "", false
+		}
+		return s.NotAvailable(result), true
+	}
 }
 
 func (s *StyleService) Errored(domain string, err error) string {

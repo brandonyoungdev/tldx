@@ -52,17 +52,8 @@ func NewTextOutput(app *config.TldxContext) *TextOutput {
 }
 
 func (o *TextOutput) Write(result resolver.DomainResult) {
-	switch {
-	case result.Error != nil:
-		if !o.app.Config.OnlyAvailable || o.app.Config.Verbose {
-			fmt.Println(o.styleService.Errored(result.Domain, result.Error))
-		}
-	case result.Available:
-		fmt.Println(o.styleService.Available(result))
-	default:
-		if !o.app.Config.OnlyAvailable {
-			fmt.Println(o.styleService.NotAvailable(result))
-		}
+	if line, ok := o.styleService.Render(result); ok {
+		fmt.Println(line)
 	}
 }
 
@@ -74,7 +65,11 @@ type CSVOutput struct {
 
 func NewCSVOutput() *CSVOutput {
 	w := csv.NewWriter(os.Stdout)
-	w.Write([]string{"domain", "available", "keyword", "prefix", "suffix", "tld", "details", "error"})
+	// The for-sale columns are appended so existing column positions hold.
+	w.Write([]string{
+		"domain", "available", "keyword", "prefix", "suffix", "tld", "details", "error",
+		"for_sale", "for_sale_price", "for_sale_uri", "for_sale_text",
+	})
 	return &CSVOutput{writer: w}
 }
 
@@ -82,6 +77,17 @@ func (o *CSVOutput) Write(result resolver.DomainResult) {
 	errMsg := ""
 	if result.Error != nil {
 		errMsg = result.Error.Error()
+	}
+
+	var prices, uris, texts string
+	if result.ForSale != nil {
+		priceList := make([]string, 0, len(result.ForSale.Prices))
+		for _, price := range result.ForSale.Prices {
+			priceList = append(priceList, price.String())
+		}
+		prices = strings.Join(priceList, "; ")
+		uris = strings.Join(result.ForSale.TrustedURIs(), "; ")
+		texts = strings.Join(result.ForSale.Texts, "; ")
 	}
 
 	record := []string{
@@ -93,6 +99,10 @@ func (o *CSVOutput) Write(result resolver.DomainResult) {
 		result.TLD,
 		result.Details,
 		errMsg,
+		fmt.Sprintf("%v", result.ForSale != nil),
+		prices,
+		uris,
+		texts,
 	}
 
 	if err := o.writer.Write(record); err != nil {
@@ -226,17 +236,8 @@ func (o *GroupedOutput) Flush() {
 
 		fmt.Printf("\n%s\n", o.styleService.GroupHeader(strings.ToLower(keyword)))
 		for _, result := range domains {
-			switch {
-			case result.Error != nil:
-				if !o.app.Config.OnlyAvailable || o.app.Config.Verbose {
-					fmt.Println(o.styleService.Errored(result.Domain, result.Error))
-				}
-			case result.Available:
-				fmt.Println(o.styleService.Available(result))
-			default:
-				if !o.app.Config.OnlyAvailable {
-					fmt.Println(o.styleService.NotAvailable(result))
-				}
+			if line, ok := o.styleService.Render(result); ok {
+				fmt.Println(line)
 			}
 		}
 	}
@@ -291,17 +292,8 @@ func (o *GroupedByTLDOutput) Flush() {
 
 		fmt.Printf("\n%s\n", o.styleService.GroupHeader(fmt.Sprintf(".%s", tld)))
 		for _, result := range domains {
-			switch {
-			case result.Error != nil:
-				if !o.app.Config.OnlyAvailable || o.app.Config.Verbose {
-					fmt.Println(o.styleService.Errored(result.Domain, result.Error))
-				}
-			case result.Available:
-				fmt.Println(o.styleService.Available(result))
-			default:
-				if !o.app.Config.OnlyAvailable {
-					fmt.Println(o.styleService.NotAvailable(result))
-				}
+			if line, ok := o.styleService.Render(result); ok {
+				fmt.Println(line)
 			}
 		}
 	}

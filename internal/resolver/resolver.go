@@ -14,12 +14,15 @@ import (
 	"time"
 
 	"github.com/brandonyoungdev/tldx/internal/config"
+	"github.com/brandonyoungdev/tldx/internal/forsale"
 	"github.com/brandonyoungdev/tldx/internal/validate"
 	"github.com/likexian/whois"
 	whoisparser "github.com/likexian/whois-parser"
 	"github.com/openrdap/rdap"
 	"github.com/openrdap/rdap/bootstrap"
 )
+
+const forSaleTimeout = 5 * time.Second
 
 // rdapQuerier abstracts the RDAP client, allowing injection in tests.
 type rdapQuerier interface {
@@ -44,12 +47,18 @@ func WithDNSLookup(fn func(context.Context, string) ([]string, error)) ResolverO
 	return func(s *ResolverService) { s.dnsLookupFn = fn }
 }
 
+// WithTXTLookup injects a custom DNS TXT lookup function (for testing).
+func WithTXTLookup(fn func(context.Context, string) ([]string, error)) ResolverOption {
+	return func(s *ResolverService) { s.txtLookupFn = fn }
+}
+
 type ResolverService struct {
 	httpClient  *http.Client
 	app         *config.TldxContext
 	rdapQuerier rdapQuerier
 	whoisFn     func(string, ...string) (string, error)
 	dnsLookupFn func(context.Context, string) ([]string, error)
+	txtLookupFn func(context.Context, string) ([]string, error)
 }
 
 type DomainSpec struct {
@@ -61,30 +70,33 @@ type DomainSpec struct {
 }
 
 type DomainResult struct {
-	Domain    string `json:"domain"`
-	Available bool   `json:"available"`
-	Details   string `json:"details,omitempty"`
-	Error     error  `json:"error,omitempty"`
-	Keyword   string `json:"keyword,omitempty"`
-	Prefix    string `json:"prefix,omitempty"`
-	Suffix    string `json:"suffix,omitempty"`
-	TLD       string `json:"tld,omitempty"`
+	Domain    string        `json:"domain"`
+	Available bool          `json:"available"`
+	Details   string        `json:"details,omitempty"`
+	Error     error         `json:"error,omitempty"`
+	Keyword   string        `json:"keyword,omitempty"`
+	Prefix    string        `json:"prefix,omitempty"`
+	Suffix    string        `json:"suffix,omitempty"`
+	TLD       string        `json:"tld,omitempty"`
+	ForSale   *forsale.Info `json:"for_sale,omitempty"`
 }
 
 type EncodableDomainResult struct {
-	Domain    string `json:"domain"`
-	Available bool   `json:"available"`
-	Details   string `json:"details,omitempty"`
-	Error     string `json:"error,omitempty"`
-	Keyword   string `json:"keyword,omitempty"`
-	Prefix    string `json:"prefix,omitempty"`
-	Suffix    string `json:"suffix,omitempty"`
-	TLD       string `json:"tld,omitempty"`
+	Domain    string        `json:"domain"`
+	Available bool          `json:"available"`
+	Details   string        `json:"details,omitempty"`
+	Error     string        `json:"error,omitempty"`
+	Keyword   string        `json:"keyword,omitempty"`
+	Prefix    string        `json:"prefix,omitempty"`
+	Suffix    string        `json:"suffix,omitempty"`
+	TLD       string        `json:"tld,omitempty"`
+	ForSale   *forsale.Info `json:"for_sale,omitempty"`
 }
 
 type CheckResult struct {
 	Registered bool
 	Details    string
+	ForSale    *forsale.Info
 }
 
 func (result DomainResult) AsEncodable() EncodableDomainResult {
@@ -101,6 +113,7 @@ func (result DomainResult) AsEncodable() EncodableDomainResult {
 		Prefix:    result.Prefix,
 		Suffix:    result.Suffix,
 		TLD:       result.TLD,
+		ForSale:   result.ForSale,
 	}
 }
 
@@ -174,6 +187,38 @@ func isRetryable(err error) bool {
 }
 
 func (s *ResolverService) CheckDomain(ctx context.Context, domain string) (CheckResult, error) {
+	result, err := s.checkDomain(ctx, domain)
+	if err == nil && result.Registered && s.app.Config.CheckForSale {
+		result.ForSale = s.checkForSale(ctx, domain)
+	}
+	return result, err
+}
+
+// checkForSale is additive: any failure returns nil rather than an error, so a
+// missing or slow TXT answer can't change the availability verdict.
+func (s *ResolverService) checkForSale(ctx context.Context, domain string) *forsale.Info {
+	lookup := s.txtLookupFn
+	if lookup == nil {
+		resolver := net.Resolver{}
+		lookup = resolver.LookupTXT
+	}
+
+	timeout := forSaleTimeout
+	if s.app.Config.ContextTimeout > 0 {
+		timeout = min(timeout, s.app.Config.ContextTimeout)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	info, ok, err := forsale.Lookup(ctx, domain, lookup)
+	if err != nil || !ok {
+		return nil
+	}
+	return &info
+}
+
+func (s *ResolverService) checkDomain(ctx context.Context, domain string) (CheckResult, error) {
 	if !validate.IsValidDomainOrKeyword(domain) {
 		return CheckResult{}, errors.New("invalid domain")
 	}
@@ -409,6 +454,7 @@ func (s *ResolverService) CheckDomainsStreaming(ctx context.Context, specs []Dom
 					Prefix:    spec.Prefix,
 					Suffix:    spec.Suffix,
 					TLD:       spec.TLD,
+					ForSale:   checkResult.ForSale,
 				}:
 				case <-ctx.Done():
 					// Context cancelled, don't send result

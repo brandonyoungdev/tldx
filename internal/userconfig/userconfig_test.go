@@ -140,8 +140,13 @@ func TestConfigPath_WithoutEnvOverride(t *testing.T) {
 	if got == "" {
 		t.Fatal("expected non-empty path")
 	}
-	if filepath.Base(got) != "presets.toml" {
-		t.Errorf("expected filename presets.toml, got %s", filepath.Base(got))
+	// Which of the two it picks depends on what already exists on this machine.
+	base := filepath.Base(got)
+	if base != userconfig.ConfigFileName && base != userconfig.LegacyConfigFileName {
+		t.Errorf("expected %s or %s, got %s", userconfig.ConfigFileName, userconfig.LegacyConfigFileName, base)
+	}
+	if filepath.Base(filepath.Dir(got)) != "tldx" {
+		t.Errorf("expected config to live in a tldx dir, got %s", got)
 	}
 }
 
@@ -243,5 +248,41 @@ func TestSave_OverwritesExisting(t *testing.T) {
 	}
 	if _, ok := loaded.Presets["beta"]; !ok {
 		t.Error("expected beta preset after overwrite")
+	}
+}
+
+// withoutConfigDir removes every variable os.UserConfigDir consults, so there
+// is no path to fall back to.
+func withoutConfigDir(t *testing.T) {
+	t.Helper()
+	t.Setenv("TLDX_CONFIG", "")
+	t.Setenv("XDG_CONFIG_HOME", "")
+	t.Setenv("HOME", "")
+}
+
+func TestConfigPath_ErrorsWithoutAConfigDir(t *testing.T) {
+	withoutConfigDir(t)
+
+	if _, err := userconfig.ConfigPath(); err == nil {
+		t.Fatal("expected an error when the config directory cannot be determined")
+	}
+}
+
+func TestLoad_ErrorsWithoutAConfigDir(t *testing.T) {
+	withoutConfigDir(t)
+
+	if _, err := userconfig.Load(); err == nil {
+		t.Fatal("expected Load to surface the missing config directory")
+	}
+}
+
+func TestSave_ErrorsWithoutAConfigDir(t *testing.T) {
+	withoutConfigDir(t)
+
+	err := userconfig.Save(&userconfig.UserConfig{
+		Presets: map[string]userconfig.PresetEntry{"nordic": {TLDs: []string{"se"}}},
+	})
+	if err == nil {
+		t.Fatal("expected Save to surface the missing config directory")
 	}
 }

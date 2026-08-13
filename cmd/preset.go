@@ -16,13 +16,98 @@ func NewPresetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "preset",
 		Short: "Manage custom TLD presets",
-		Long:  "Add, remove, and list custom TLD presets that persist between runs.",
+		Long: "Add, remove, and list custom TLD presets that persist between runs,\n" +
+			"and pick the preset used when no TLD flags are given.",
 	}
 
 	cmd.AddCommand(newPresetAddCmd())
 	cmd.AddCommand(newPresetRemoveCmd())
 	cmd.AddCommand(newPresetListCmd())
+	cmd.AddCommand(newPresetDefaultCmd())
 	return cmd
+}
+
+func newPresetDefaultCmd() *cobra.Command {
+	var clear bool
+
+	c := &cobra.Command{
+		Use:   "default [name]",
+		Short: "Show, set, or clear the preset used when --tld-preset is omitted",
+		Long: "Set the TLD preset applied to every run when neither --tlds nor --tld-preset is given.\n" +
+			"Run without arguments to show the current default.",
+		Example: `  tldx preset default            # show the current default
+  tldx preset default popular    # always check popular TLDs
+  tldx preset default --clear    # go back to .com only`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := userconfig.Load()
+			if err != nil {
+				slog.Error("Failed to load user config", "error", err)
+				return err
+			}
+
+			path, _ := userconfig.ConfigPath()
+
+			if clear {
+				if len(args) > 0 {
+					return fmt.Errorf("cannot combine --clear with a preset name")
+				}
+				if cfg.Defaults.TLDPreset == "" {
+					cmd.Println("No default preset is set.")
+					return nil
+				}
+				previous := cfg.Defaults.TLDPreset
+				cfg.Defaults.TLDPreset = ""
+				if err := userconfig.Save(cfg); err != nil {
+					slog.Error("Failed to save user config", "error", err)
+					return err
+				}
+				cmd.Printf("Cleared default preset (was %q) → %s\n", previous, path)
+				return nil
+			}
+
+			if len(args) == 0 {
+				if cfg.Defaults.TLDPreset == "" {
+					cmd.Printf("No default preset is set. Use \"tldx preset default <name>\" to set one.\n")
+					return nil
+				}
+				cmd.Printf("Default preset: %s\n", cfg.Defaults.TLDPreset)
+				return nil
+			}
+
+			name := strings.ToLower(strings.TrimSpace(strings.TrimPrefix(args[0], ".")))
+			if name == "" {
+				return fmt.Errorf("preset name cannot be empty")
+			}
+
+			if !presetExists(name, cfg) {
+				return fmt.Errorf("preset %q not found; run \"tldx preset list\" to see available presets", name)
+			}
+
+			cfg.Defaults.TLDPreset = name
+			if err := userconfig.Save(cfg); err != nil {
+				slog.Error("Failed to save user config", "error", err)
+				return err
+			}
+
+			cmd.Printf("Default preset set to %q → %s\n", name, path)
+			return nil
+		},
+	}
+
+	c.Flags().BoolVar(&clear, "clear", false, "Remove the configured default preset")
+	return c
+}
+
+func presetExists(name string, cfg *userconfig.UserConfig) bool {
+	if name == "all" {
+		return true
+	}
+	if _, ok := presets.DefaultTLDPresets[name]; ok {
+		return true
+	}
+	_, ok := cfg.Presets[name]
+	return ok
 }
 
 func newPresetAddCmd() *cobra.Command {
@@ -108,12 +193,20 @@ func newPresetRemoveCmd() *cobra.Command {
 
 			delete(cfg.Presets, name)
 
+			clearedDefault := cfg.Defaults.TLDPreset == name
+			if clearedDefault {
+				cfg.Defaults.TLDPreset = ""
+			}
+
 			if err := userconfig.Save(cfg); err != nil {
 				slog.Error("Failed to save user config", "error", err)
 				return err
 			}
 
 			cmd.Printf("Removed preset %q\n", name)
+			if clearedDefault {
+				cmd.Printf("Cleared default preset (it pointed at %q)\n", name)
+			}
 			return nil
 		},
 	}
@@ -149,11 +242,17 @@ func newPresetListCmd() *cobra.Command {
 			}
 			sort.Strings(names)
 
+			defaultPreset := userCfg.Defaults.TLDPreset
+
 			const maxWidth = 70
 			const labelWidth = 24
 
 			cmd.Printf("\nTLD Presets  (* = custom):\n\n")
-			cmd.Printf("%-*s  %s\n\n", labelWidth, "all", "(use all available TLDs)")
+			if defaultPreset == "all" {
+				cmd.Printf("%-*s  %s\n\n", labelWidth, "all (default)", "(use all available TLDs)")
+			} else {
+				cmd.Printf("%-*s  %s\n\n", labelWidth, "all", "(use all available TLDs)")
+			}
 
 			for _, name := range names {
 				tlds := all[name]
@@ -169,7 +268,10 @@ func newPresetListCmd() *cobra.Command {
 
 				label := name
 				if userNames[name] {
-					label = name + " *"
+					label += " *"
+				}
+				if name == defaultPreset {
+					label += " (default)"
 				}
 
 				if len(tldStr) > maxWidth-labelWidth-4 {
@@ -184,7 +286,15 @@ func newPresetListCmd() *cobra.Command {
 				cmd.Println()
 			}
 
-			cmd.Printf("%-*s  %s\n\n", labelWidth, "all", "(use all available TLDs)")
+			if defaultPreset == "all" {
+				cmd.Printf("%-*s  %s\n\n", labelWidth, "all (default)", "(use all available TLDs)")
+			} else {
+				cmd.Printf("%-*s  %s\n\n", labelWidth, "all", "(use all available TLDs)")
+			}
+
+			if defaultPreset != "" {
+				cmd.Printf("Default preset: %s\n", defaultPreset)
+			}
 
 			path, _ := userconfig.ConfigPath()
 			cmd.Printf("Config file: %s\n", path)

@@ -375,3 +375,145 @@ func TestWithRetry_RetryOnRetryableError(t *testing.T) {
 		t.Errorf("Expected 2 attempts (1 retry), got %d", attempts)
 	}
 }
+
+func TestCheckDomain_ForSale(t *testing.T) {
+	registered := &mockRDAPQuerier{resp: makeDomainRDAPResponse()}
+	notFound := &mockRDAPQuerier{err: fmt.Errorf("object does not exist.")}
+
+	txtOK := func(_ context.Context, name string) ([]string, error) {
+		if name != "_for-sale.taken-domain.com" {
+			return nil, fmt.Errorf("unexpected TXT query for %q", name)
+		}
+		return []string{"v=FORSALE1;fval=USD750"}, nil
+	}
+
+	t.Run("enriches a taken domain when enabled", func(t *testing.T) {
+		app := config.NewTldxContext()
+		app.Config.MaxRetries = 0
+		app.Config.CheckForSale = true
+
+		s := resolver.NewResolverService(app,
+			resolver.WithRDAPQuerier(registered),
+			resolver.WithTXTLookup(txtOK),
+		)
+
+		result, err := s.CheckDomain(context.Background(), "taken-domain.com")
+		if err != nil {
+			t.Fatalf("Expected no error, got: %v", err)
+		}
+		if result.ForSale == nil {
+			t.Fatal("Expected for-sale info to be attached")
+		}
+		if len(result.ForSale.Prices) != 1 || result.ForSale.Prices[0].String() != "USD 750" {
+			t.Errorf("Expected USD 750, got %+v", result.ForSale.Prices)
+		}
+	})
+
+	t.Run("does nothing when the flag is off", func(t *testing.T) {
+		app := config.NewTldxContext()
+		app.Config.MaxRetries = 0
+
+		called := false
+		s := resolver.NewResolverService(app,
+			resolver.WithRDAPQuerier(registered),
+			resolver.WithTXTLookup(func(ctx context.Context, name string) ([]string, error) {
+				called = true
+				return txtOK(ctx, name)
+			}),
+		)
+
+		result, _ := s.CheckDomain(context.Background(), "taken-domain.com")
+		if called {
+			t.Error("Expected no TXT lookup when --for-sale is off")
+		}
+		if result.ForSale != nil {
+			t.Error("Expected no for-sale info")
+		}
+	})
+
+	t.Run("skips available domains", func(t *testing.T) {
+		app := config.NewTldxContext()
+		app.Config.MaxRetries = 0
+		app.Config.CheckForSale = true
+
+		called := false
+		s := resolver.NewResolverService(app,
+			resolver.WithRDAPQuerier(notFound),
+			resolver.WithTXTLookup(func(_ context.Context, _ string) ([]string, error) {
+				called = true
+				return nil, nil
+			}),
+		)
+
+		result, _ := s.CheckDomain(context.Background(), "available-domain.com")
+		if called {
+			t.Error("Expected no TXT lookup for an available domain")
+		}
+		if result.Registered || result.ForSale != nil {
+			t.Errorf("Expected an untouched available result, got %+v", result)
+		}
+	})
+
+	t.Run("a failing TXT lookup leaves the verdict intact", func(t *testing.T) {
+		app := config.NewTldxContext()
+		app.Config.MaxRetries = 0
+		app.Config.CheckForSale = true
+
+		s := resolver.NewResolverService(app,
+			resolver.WithRDAPQuerier(registered),
+			resolver.WithTXTLookup(func(_ context.Context, _ string) ([]string, error) {
+				return nil, errors.New("no such host")
+			}),
+		)
+
+		result, err := s.CheckDomain(context.Background(), "taken-domain.com")
+		if err != nil {
+			t.Fatalf("Expected the TXT error to be swallowed, got: %v", err)
+		}
+		if !result.Registered {
+			t.Error("Expected the domain to still be registered")
+		}
+		if result.ForSale != nil {
+			t.Error("Expected no for-sale info")
+		}
+	})
+
+	t.Run("a domain with no for-sale record stays nil", func(t *testing.T) {
+		app := config.NewTldxContext()
+		app.Config.MaxRetries = 0
+		app.Config.CheckForSale = true
+
+		s := resolver.NewResolverService(app,
+			resolver.WithRDAPQuerier(registered),
+			resolver.WithTXTLookup(func(_ context.Context, _ string) ([]string, error) {
+				return []string{"v=spf1 -all"}, nil
+			}),
+		)
+
+		result, _ := s.CheckDomain(context.Background(), "taken-domain.com")
+		if result.ForSale != nil {
+			t.Errorf("Expected nil for-sale info, got %+v", result.ForSale)
+		}
+	})
+
+	t.Run("streaming results carry for-sale info", func(t *testing.T) {
+		app := config.NewTldxContext()
+		app.Config.MaxRetries = 0
+		app.Config.CheckForSale = true
+
+		s := resolver.NewResolverService(app,
+			resolver.WithRDAPQuerier(registered),
+			resolver.WithTXTLookup(txtOK),
+		)
+
+		specs := []resolver.DomainSpec{{Domain: "taken-domain.com", Keyword: "taken", TLD: "com"}}
+		for result := range s.CheckDomainsStreaming(context.Background(), specs) {
+			if result.ForSale == nil {
+				t.Fatal("Expected for-sale info on the streamed result")
+			}
+			if got := result.AsEncodable().ForSale; got == nil {
+				t.Error("Expected for-sale info to survive AsEncodable")
+			}
+		}
+	})
+}
