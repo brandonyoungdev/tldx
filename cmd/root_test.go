@@ -1,9 +1,11 @@
 package cmd_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/brandonyoungdev/tldx/cmd"
@@ -139,4 +141,39 @@ func TestDomainResult_RicherJSONFields(t *testing.T) {
 	assert.Contains(t, s, `"prefix":"get"`)
 	assert.Contains(t, s, `"tld":"com"`)
 	assert.NotContains(t, s, `"suffix"`)
+}
+
+func TestRootCommand_ShowsHelpWithoutKeywords(t *testing.T) {
+	t.Setenv("TLDX_CONFIG", filepath.Join(t.TempDir(), "config.toml"))
+
+	rootCmd := cmd.NewRootCmd(config.NewTldxContext())
+	rootCmd.SetArgs([]string{})
+
+	buf := &bytes.Buffer{}
+	rootCmd.SetOut(buf)
+	rootCmd.SetErr(buf)
+
+	require.NoError(t, rootCmd.Execute())
+	assert.Contains(t, buf.String(), "Usage:")
+}
+
+func TestRootCommand_MissingInputFile(t *testing.T) {
+	t.Setenv("TLDX_CONFIG", filepath.Join(t.TempDir(), "config.toml"))
+
+	rootCmd := cmd.NewRootCmd(config.NewTldxContext())
+	rootCmd.SetArgs([]string{"--input", filepath.Join(t.TempDir(), "missing.txt")})
+	rootCmd.SilenceErrors = true
+
+	assert.Error(t, rootCmd.Execute())
+}
+
+func TestRootCommand_EmptyFormatFallsBackToText(t *testing.T) {
+	t.Setenv("TLDX_CONFIG", filepath.Join(t.TempDir(), "config.toml"))
+
+	app := config.NewTldxContext()
+	rootCmd := cmd.NewRootCmd(app)
+	rootCmd.SetArgs([]string{"stripe", "--tlds", "com", "--format", "", "--dry-run", "-v"})
+
+	require.NoError(t, rootCmd.Execute())
+	assert.Equal(t, "text", app.Config.OutputFormat)
 }

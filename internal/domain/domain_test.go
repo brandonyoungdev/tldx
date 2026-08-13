@@ -7,7 +7,9 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/brandonyoungdev/tldx/internal/config"
 	"github.com/brandonyoungdev/tldx/internal/domain"
@@ -440,4 +442,50 @@ func TestExec_ForSale_StatsRow(t *testing.T) {
 	})
 
 	assert.Contains(t, out, "for sale")
+}
+
+// cancellingRDAP cancels the run once enough lookups have started, leaving the
+// remaining in-flight results to arrive after cancellation.
+type cancellingRDAP struct {
+	after  int32
+	calls  atomic.Int32
+	cancel context.CancelFunc
+}
+
+func (m *cancellingRDAP) Do(_ *rdap.Request) (*rdap.Response, error) {
+	switch n := m.calls.Add(1); {
+	case n == m.after:
+		m.cancel()
+	case n > m.after:
+		// Hold these back so they finish well after the cancellation.
+		time.Sleep(5 * time.Millisecond)
+	}
+	return &rdap.Response{Object: &rdap.Domain{}}, nil
+}
+
+func TestExec_CancelledMidRun(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDs = []string{"com"}
+	app.Config.MaxRetries = 0
+	app.Config.NoColor = true
+	app.Config.Verbose = true
+	app.Config.ShowStats = true
+	app.Config.OutputFormat = "text"
+	app.Config.ConcurrencyLimit = 64
+
+	keywords := make([]string, 200)
+	for i := range keywords {
+		keywords[i] = fmt.Sprintf("keyword%d", i)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	mock := &cancellingRDAP{after: 32, cancel: cancel}
+
+	out := captureStdout(func() {
+		assert.False(t, domain.Exec(ctx, app, keywords, resolver.WithRDAPQuerier(mock)))
+	})
+
+	assert.Contains(t, out, "Operation cancelled")
+	assert.Less(t, int(mock.calls.Load()), len(keywords), "the run should stop short")
 }

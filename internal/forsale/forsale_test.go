@@ -143,6 +143,21 @@ func TestParse(t *testing.T) {
 			}},
 		},
 		{
+			name:   "prices in one currency are ordered by amount",
+			txts:   []string{"v=FORSALE1;fval=USD750", "v=FORSALE1;fval=USD1200"},
+			wantOK: true,
+			expected: forsale.Info{Prices: []forsale.Price{
+				{Currency: "USD", Amount: "1200"},
+				{Currency: "USD", Amount: "750"},
+			}},
+		},
+		{
+			name:     "tabs in free text become spaces",
+			txts:     []string{"v=FORSALE1;ftxt=Make\tan\toffer"},
+			wantOK:   true,
+			expected: forsale.Info{Texts: []string{"Make an offer"}},
+		},
+		{
 			name:     "control characters are stripped from free text",
 			txts:     []string{"v=FORSALE1;ftxt=Buy \x1b[31mnow\x1b[0m\x07 please"},
 			wantOK:   true,

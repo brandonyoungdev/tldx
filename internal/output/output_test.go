@@ -234,6 +234,18 @@ func captureStdout(fn func()) string {
 	return buf.String()
 }
 
+func captureStderr(fn func()) string {
+	old := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+	fn()
+	w.Close()
+	os.Stderr = old
+	var buf bytes.Buffer
+	io.Copy(&buf, r) //nolint:errcheck
+	return buf.String()
+}
+
 func makeResult(domain string, available bool) resolver.DomainResult {
 	return resolver.DomainResult{
 		Domain:    domain,
@@ -325,6 +337,15 @@ func TestCSVOutput_Flush(t *testing.T) {
 	})
 	assert.Contains(t, out, "stripe.com")
 	assert.Contains(t, out, "true")
+}
+
+func TestCSVOutput_ErrorColumn(t *testing.T) {
+	out := captureStdout(func() {
+		w := output.NewCSVOutput()
+		w.Write(resolver.DomainResult{Domain: "stripe.com", Error: errors.New("lookup failed")})
+		w.Flush()
+	})
+	assert.Contains(t, out, "lookup failed")
 }
 
 func TestJSONStreamOutput_Write_Flush(t *testing.T) {
@@ -510,6 +531,17 @@ func TestStyleService_ForSale_NoDetails(t *testing.T) {
 	assert.NotContains(t, line, "—")
 }
 
+func TestStyleService_ForSale_WithoutARecord(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.NoColor = true
+	svc := output.NewStyleService(app)
+
+	line := svc.ForSale(resolver.DomainResult{Domain: "stripe.com"})
+
+	assert.Contains(t, line, "stripe.com is taken but for sale")
+	assert.NotContains(t, line, "—")
+}
+
 func TestStyleService_ForSale_VerboseAddsTextAndUntrustedURIs(t *testing.T) {
 	app := config.NewTldxContext()
 	app.Config.NoColor = true
@@ -622,4 +654,30 @@ func TestRenderStatsSummary_ForSaleRowOnlyWhenPresent(t *testing.T) {
 	assert.Contains(t, output.RenderStatsSummary(), "for sale")
 
 	output.Stat = output.Stats{}
+}
+
+type failingWriter struct{}
+
+func (failingWriter) Write([]byte) (int, error) { return 0, errors.New("disk on fire") }
+
+func TestJsonArrayOutput_FlushReportsAWriteFailure(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.ShowStats = false
+
+	w := output.NewJsonArrayOutput(failingWriter{}, app)
+	w.Write(availableResult("stripe.com", "stripe", "", "", "com"))
+
+	stderr := captureStderr(func() { w.Flush() })
+	assert.Contains(t, stderr, "error encoding JSON array")
+}
+
+func TestJsonArrayOutput_FlushReportsAWriteFailureWithStats(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.ShowStats = true
+
+	w := output.NewJsonArrayOutput(failingWriter{}, app)
+	w.Write(availableResult("stripe.com", "stripe", "", "", "com"))
+
+	stderr := captureStderr(func() { w.Flush() })
+	assert.Contains(t, stderr, "error encoding JSON array")
 }
