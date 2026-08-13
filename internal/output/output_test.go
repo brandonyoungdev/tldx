@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/brandonyoungdev/tldx/internal/config"
+	"github.com/brandonyoungdev/tldx/internal/forsale"
 	"github.com/brandonyoungdev/tldx/internal/output"
 	"github.com/brandonyoungdev/tldx/internal/resolver"
 	"github.com/stretchr/testify/assert"
@@ -465,4 +466,160 @@ func TestGroupedOutput_KeywordFor_NoDot(t *testing.T) {
 	})
 	result := captureStdout(func() { out.Flush() })
 	assert.Contains(t, result, "nodot")
+}
+
+func forSaleResult(domain string, txts ...string) resolver.DomainResult {
+	info, ok := forsale.Parse(txts)
+	if !ok {
+		panic("test fixture is not a valid for-sale rrset")
+	}
+	return resolver.DomainResult{
+		Domain:    domain,
+		Available: false,
+		Keyword:   strings.Split(domain, ".")[0],
+		TLD:       "com",
+		ForSale:   &info,
+	}
+}
+
+func TestStyleService_ForSale(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.NoColor = true
+	svc := output.NewStyleService(app)
+
+	line := svc.ForSale(forSaleResult("stripe.com",
+		"v=FORSALE1;fval=USD750",
+		"v=FORSALE1;furi=https://fs.example.com/",
+	))
+
+	assert.Contains(t, line, "💰")
+	assert.Contains(t, line, "stripe.com is taken but for sale")
+	assert.Contains(t, line, "USD 750")
+	assert.Contains(t, line, "https://fs.example.com/")
+}
+
+func TestStyleService_ForSale_NoDetails(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.NoColor = true
+	svc := output.NewStyleService(app)
+
+	// A bare version tag still means "for sale" per RFC 10023 §3.6.
+	line := svc.ForSale(forSaleResult("stripe.com", "v=FORSALE1;"))
+
+	assert.Contains(t, line, "stripe.com is taken but for sale")
+	assert.NotContains(t, line, "—")
+}
+
+func TestStyleService_ForSale_VerboseAddsTextAndUntrustedURIs(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.NoColor = true
+
+	result := forSaleResult("stripe.com",
+		"v=FORSALE1;ftxt=Serious offers only",
+		"v=FORSALE1;fcod=EXCO-ZGVhZGJlZWYx",
+		"v=FORSALE1;furi=javascript:alert(1)",
+	)
+
+	quiet := output.NewStyleService(app).ForSale(result)
+	assert.NotContains(t, quiet, "Serious offers only")
+	assert.NotContains(t, quiet, "javascript:")
+
+	app.Config.Verbose = true
+	loud := output.NewStyleService(app).ForSale(result)
+	assert.Contains(t, loud, "Serious offers only")
+	assert.Contains(t, loud, "EXCO-ZGVhZGJlZWYx")
+	assert.Contains(t, loud, "unverified scheme: javascript:alert(1)")
+}
+
+func TestTextOutput_Write_ForSale(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.NoColor = true
+	w := output.NewTextOutput(app)
+
+	out := captureStdout(func() {
+		w.Write(forSaleResult("stripe.com", "v=FORSALE1;fval=USD750"))
+	})
+
+	assert.Contains(t, out, "is taken but for sale")
+	assert.Contains(t, out, "USD 750")
+}
+
+func TestTextOutput_Write_OnlyForSale_SuppressesPlainTaken(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.NoColor = true
+	app.Config.OnlyForSale = true
+	w := output.NewTextOutput(app)
+
+	out := captureStdout(func() {
+		w.Write(resolver.DomainResult{Domain: "taken.com", Available: false})
+		w.Write(forSaleResult("stripe.com", "v=FORSALE1;fval=USD750"))
+	})
+
+	assert.NotContains(t, out, "taken.com")
+	assert.Contains(t, out, "stripe.com")
+}
+
+func TestJsonOutput_IncludesForSale(t *testing.T) {
+	app := config.NewTldxContext()
+
+	var buf bytes.Buffer
+	w := output.NewJsonArrayOutput(&buf, app)
+	w.Write(forSaleResult("stripe.com", "v=FORSALE1;fval=USD750", "v=FORSALE1;furi=https://fs.example.com/"))
+	w.Write(availableResult("stripe.io", "stripe", "", "", "io"))
+	w.Flush()
+
+	var results []map[string]any
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &results))
+	require.Len(t, results, 2)
+
+	forSale, ok := results[0]["for_sale"].(map[string]any)
+	require.True(t, ok, "expected a nested for_sale object")
+
+	prices := forSale["prices"].([]any)
+	require.Len(t, prices, 1)
+	assert.Equal(t, "USD", prices[0].(map[string]any)["currency"])
+	assert.Equal(t, "750", prices[0].(map[string]any)["amount"])
+
+	uris := forSale["uris"].([]any)
+	require.Len(t, uris, 1)
+	assert.Equal(t, true, uris[0].(map[string]any)["trusted"])
+
+	// Available domains never carry the key.
+	_, present := results[1]["for_sale"]
+	assert.False(t, present)
+}
+
+func TestCSVOutput_ForSaleColumns(t *testing.T) {
+	out := captureStdout(func() {
+		w := output.NewCSVOutput()
+		w.Write(forSaleResult("stripe.com",
+			"v=FORSALE1;fval=USD750",
+			"v=FORSALE1;furi=https://fs.example.com/",
+			"v=FORSALE1;ftxt=Serious offers only",
+		))
+		w.Write(availableResult("stripe.io", "stripe", "", "", "io"))
+		w.Flush()
+	})
+
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	require.Len(t, lines, 3)
+
+	header := strings.Split(lines[0], ",")
+	assert.Equal(t, []string{"for_sale", "for_sale_price", "for_sale_uri", "for_sale_text"}, header[8:])
+	// Pre-existing columns keep their positions.
+	assert.Equal(t, "domain", header[0])
+	assert.Equal(t, "error", header[7])
+
+	assert.Contains(t, lines[1], "true,USD 750,https://fs.example.com/,Serious offers only")
+	assert.Contains(t, lines[2], "false,,,")
+}
+
+func TestRenderStatsSummary_ForSaleRowOnlyWhenPresent(t *testing.T) {
+	output.Stat = output.Stats{Total: 2, NotAvailable: 2}
+	assert.NotContains(t, output.RenderStatsSummary(), "for sale")
+
+	output.Stat = output.Stats{Total: 2, NotAvailable: 2, ForSale: 1}
+	assert.Contains(t, output.RenderStatsSummary(), "for sale")
+
+	output.Stat = output.Stats{}
 }

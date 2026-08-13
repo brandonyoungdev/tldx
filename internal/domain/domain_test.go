@@ -314,3 +314,130 @@ func TestExec_OnlyAvailable_WarningsSuppressed(t *testing.T) {
 	// error output should be suppressed when only-available is set
 	assert.NotContains(t, strings.ToLower(out), "errored")
 }
+
+func takenRDAP() *mockRDAPQuerier {
+	return &mockRDAPQuerier{resp: &rdap.Response{Object: &rdap.Domain{}}}
+}
+
+func forSaleTXT(txts ...string) func(context.Context, string) ([]string, error) {
+	return func(_ context.Context, _ string) ([]string, error) {
+		return txts, nil
+	}
+}
+
+func TestExec_ForSale_AnnotatesTakenDomain(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDs = []string{"com"}
+	app.Config.MaxRetries = 0
+	app.Config.NoColor = true
+	app.Config.CheckForSale = true
+
+	out := captureStdout(func() {
+		result := domain.Exec(context.Background(), app, []string{"taken"},
+			resolver.WithRDAPQuerier(takenRDAP()),
+			resolver.WithTXTLookup(forSaleTXT("v=FORSALE1;fval=USD750")))
+		assert.False(t, result)
+	})
+
+	assert.Contains(t, out, "taken.com is taken but for sale")
+	assert.Contains(t, out, "USD 750")
+	assert.NotContains(t, out, "is not available")
+}
+
+func TestExec_ForSale_Disabled_LeavesOutputUnchanged(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDs = []string{"com"}
+	app.Config.MaxRetries = 0
+	app.Config.NoColor = true
+
+	out := captureStdout(func() {
+		domain.Exec(context.Background(), app, []string{"taken"},
+			resolver.WithRDAPQuerier(takenRDAP()),
+			resolver.WithTXTLookup(forSaleTXT("v=FORSALE1;fval=USD750")))
+	})
+
+	assert.Contains(t, out, "taken.com is not available")
+	assert.NotContains(t, out, "for sale")
+}
+
+func TestExec_OnlyForSale_FiltersAndSucceeds(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDs = []string{"com", "io"}
+	app.Config.MaxRetries = 0
+	app.Config.NoColor = true
+	app.Config.CheckForSale = true
+	app.Config.OnlyForSale = true
+
+	// Only the .com publishes a for-sale record.
+	txt := func(_ context.Context, name string) ([]string, error) {
+		if name == "_for-sale.taken.com" {
+			return []string{"v=FORSALE1;fval=EUR500"}, nil
+		}
+		return nil, fmt.Errorf("no such host")
+	}
+
+	out := captureStdout(func() {
+		result := domain.Exec(context.Background(), app, []string{"taken"},
+			resolver.WithRDAPQuerier(takenRDAP()),
+			resolver.WithTXTLookup(txt))
+		assert.True(t, result)
+	})
+
+	assert.Contains(t, out, "taken.com is taken but for sale")
+	assert.NotContains(t, out, "taken.io")
+}
+
+func TestExec_OnlyForSale_NoHitsIsAFailure(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDs = []string{"com"}
+	app.Config.MaxRetries = 0
+	app.Config.NoColor = true
+	app.Config.OutputFormat = "text"
+	app.Config.CheckForSale = true
+	app.Config.OnlyForSale = true
+
+	out := captureStdout(func() {
+		result := domain.Exec(context.Background(), app, []string{"taken"},
+			resolver.WithRDAPQuerier(takenRDAP()),
+			resolver.WithTXTLookup(forSaleTXT("v=spf1 -all")))
+		assert.False(t, result)
+	})
+
+	assert.Empty(t, strings.TrimSpace(out))
+}
+
+func TestExec_OnlyAvailableWithForSale_KeepsAvailableSemantics(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDs = []string{"com"}
+	app.Config.MaxRetries = 0
+	app.Config.NoColor = true
+	app.Config.OutputFormat = "text"
+	app.Config.CheckForSale = true
+	app.Config.OnlyAvailable = true
+
+	out := captureStdout(func() {
+		result := domain.Exec(context.Background(), app, []string{"taken"},
+			resolver.WithRDAPQuerier(takenRDAP()),
+			resolver.WithTXTLookup(forSaleTXT("v=FORSALE1;fval=USD750")))
+		assert.False(t, result)
+	})
+
+	assert.Empty(t, strings.TrimSpace(out))
+}
+
+func TestExec_ForSale_StatsRow(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.TLDs = []string{"com"}
+	app.Config.MaxRetries = 0
+	app.Config.NoColor = true
+	app.Config.CheckForSale = true
+	app.Config.ShowStats = true
+
+	out := captureStdout(func() {
+		domain.Exec(context.Background(), app, []string{"taken"},
+			resolver.WithRDAPQuerier(takenRDAP()),
+			resolver.WithTXTLookup(forSaleTXT("v=FORSALE1;fval=USD750")))
+	})
+
+	assert.Contains(t, out, "for sale")
+}

@@ -140,8 +140,13 @@ func TestConfigPath_WithoutEnvOverride(t *testing.T) {
 	if got == "" {
 		t.Fatal("expected non-empty path")
 	}
-	if filepath.Base(got) != "presets.toml" {
-		t.Errorf("expected filename presets.toml, got %s", filepath.Base(got))
+	// Which of the two it picks depends on what already exists on this machine.
+	base := filepath.Base(got)
+	if base != userconfig.ConfigFileName && base != userconfig.LegacyConfigFileName {
+		t.Errorf("expected %s or %s, got %s", userconfig.ConfigFileName, userconfig.LegacyConfigFileName, base)
+	}
+	if filepath.Base(filepath.Dir(got)) != "tldx" {
+		t.Errorf("expected config to live in a tldx dir, got %s", got)
 	}
 }
 

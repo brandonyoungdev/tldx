@@ -21,6 +21,8 @@ type TldxConfigOptions struct {
 	Regex            bool
 	Limit            int
 	DryRun           bool
+	CheckForSale     bool
+	OnlyForSale      bool
 	MaxRetries       int
 	InitialBackoff   time.Duration
 	MaxBackoff       time.Duration

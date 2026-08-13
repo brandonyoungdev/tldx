@@ -41,7 +41,12 @@ func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []stri
 
 	output.Stat.Total = len(specs)
 	foundAvailable := false
+	foundForSale := false
 	availableCount := 0
+
+	foundMatch := func() bool {
+		return foundAvailable || (app.Config.OnlyForSale && foundForSale)
+	}
 
 	for result := range resultChan {
 		select {
@@ -53,7 +58,7 @@ func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []stri
 			if app.Config.ShowStats && app.Config.OutputFormat == "text" {
 				fmt.Println(output.RenderStatsSummary())
 			}
-			return foundAvailable
+			return foundMatch()
 		default:
 		}
 
@@ -66,7 +71,12 @@ func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []stri
 		} else {
 			output.Stat.NotAvailable++
 		}
-		if app.Config.OnlyAvailable && !result.Available {
+		if result.ForSale != nil {
+			output.Stat.ForSale++
+			foundForSale = true
+		}
+
+		if !ShouldDisplay(app.Config, result) {
 			continue
 		}
 		outputWriter.Write(result)
@@ -83,5 +93,19 @@ func Exec(ctx context.Context, app *config.TldxContext, domainsOrKeywords []stri
 		fmt.Println(output.RenderStatsSummary())
 	}
 
-	return foundAvailable
+	return foundMatch()
+}
+
+// ShouldDisplay applies the --only-* filters. Shared with the MCP server.
+func ShouldDisplay(cfg *config.TldxConfigOptions, result resolver.DomainResult) bool {
+	if !cfg.OnlyAvailable && !cfg.OnlyForSale {
+		return true
+	}
+	if cfg.OnlyAvailable && result.Available {
+		return true
+	}
+	if cfg.OnlyForSale && result.ForSale != nil {
+		return true
+	}
+	return false
 }
