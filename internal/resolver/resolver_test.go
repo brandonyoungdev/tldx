@@ -71,6 +71,51 @@ func TestCheckDomain_RDAPNotFound_Available(t *testing.T) {
 	}
 }
 
+// A network error can contain the substring "404" — for example a timeout whose
+// text embeds the request URL, which holds the domain name. That must not be
+// mistaken for an RDAP 404 response (i.e. an available domain).
+func TestCheckDomain_ErrorTextContains404_NotAvailable(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.MaxRetries = 0
+
+	mock := &mockRDAPQuerier{
+		err: fmt.Errorf(`failed to fetch RDAP data: Get "https://rdap.verisign.com/com/v1/domain/404ai.com": context deadline exceeded`),
+	}
+
+	s := resolver.NewResolverService(app, resolver.WithRDAPQuerier(mock))
+
+	result, err := s.CheckDomain(context.Background(), "404ai.com")
+	if err == nil {
+		t.Fatal("expected a lookup error: a timed-out query must not be reported as available")
+	}
+	if result.Registered {
+		t.Error("expected the failed lookup to be unknown, not registered")
+	}
+}
+
+// The typed openrdap 404 error is still recognised as "not registered".
+func TestCheckDomain_Typed404Error_Available(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.MaxRetries = 0
+
+	mock := &mockRDAPQuerier{
+		err: &rdap.ClientError{
+			Type: rdap.ObjectDoesNotExist,
+			Text: "RDAP server returned 404, object does not exist.",
+		},
+	}
+
+	s := resolver.NewResolverService(app, resolver.WithRDAPQuerier(mock))
+
+	result, err := s.CheckDomain(context.Background(), "available-domain.com")
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+	if result.Registered {
+		t.Error("Expected domain to be not registered (available)")
+	}
+}
+
 func TestCheckDomain_RDAPRegistered(t *testing.T) {
 	app := config.NewTldxContext()
 	app.Config.MaxRetries = 0
