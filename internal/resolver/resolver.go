@@ -277,8 +277,13 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 
 	// name might be <nil> if no rdap found
 	if err != nil {
-		// check if the RDAP is not found (404)
-		if strings.Contains(err.Error(), "object does not exist.") || strings.Contains(err.Error(), "404") {
+		// Check if 404 response from rdap
+		var clientErr *rdap.ClientError
+		notFound := errors.As(err, &clientErr) && clientErr.Type == rdap.ObjectDoesNotExist
+		if !notFound && strings.Contains(err.Error(), "object does not exist.") {
+			notFound = true
+		}
+		if notFound {
 			return CheckResult{
 				Registered: false,
 				Details:    "RDAP is not found or doesn't exist",
