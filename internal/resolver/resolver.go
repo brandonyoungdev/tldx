@@ -277,9 +277,7 @@ func (s *ResolverService) checkRDAP(ctx context.Context, domain string) (CheckRe
 
 	// name might be <nil> if no rdap found
 	if err != nil {
-		// 只有 RDAP 服务明确返回 404 才算未注册：优先用 openrdap 的类型化错误，
-		// 再兜底匹配它的固定文案。不能用 strings.Contains(err, "404")：
-		// 网络错误信息里带着查询 URL，域名含 "404"（如 404ai.com）时会把超时误判成未注册。
+		// Check if 404 response from rdap
 		var clientErr *rdap.ClientError
 		notFound := errors.As(err, &clientErr) && clientErr.Type == rdap.ObjectDoesNotExist
 		if !notFound && strings.Contains(err.Error(), "object does not exist.") {
