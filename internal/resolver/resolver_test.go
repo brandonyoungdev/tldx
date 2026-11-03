@@ -71,9 +71,7 @@ func TestCheckDomain_RDAPNotFound_Available(t *testing.T) {
 	}
 }
 
-// A network error can contain the substring "404" — for example a timeout whose
-// text embeds the request URL, which holds the domain name. That must not be
-// mistaken for an RDAP 404 response (i.e. an available domain).
+// A network error can contain the substring "404"
 func TestCheckDomain_ErrorTextContains404_NotAvailable(t *testing.T) {
 	app := config.NewTldxContext()
 	app.Config.MaxRetries = 0
