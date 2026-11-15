@@ -30,30 +30,11 @@ func TestIsValidDomainOrKeyword(t *testing.T) {
 }
 
 func TestValidateKeywords(t *testing.T) {
-	input := []string{"google.com", "example", "example.com", "test.org", "google.co.uk"}
-	expected := []string{"google", "example", "test"}
+	input := []string{"Google.com", "example", "example.com", "example", "google.co.uk"}
+	expected := []string{"google.com", "example", "example.com", "google.co.uk"}
 
-	validatedKeywords := validate.ValidateKeywords(input)
-	result := validatedKeywords.Keywords
-	tlds := validatedKeywords.NewTlds
-
-	if len(result) != len(expected) {
-		t.Errorf("Expected %d keywords, got %d", len(expected), len(result))
-	}
-
-	for _, keyword := range expected {
-		found := slices.Contains(result, keyword)
-		if !found {
-			t.Errorf("Expected keyword %s not found", keyword)
-		}
-	}
-
-	expectedTLDs := []string{"com", "org", "co.uk"}
-	for _, tld := range expectedTLDs {
-		found := slices.Contains(tlds, tld)
-		if !found {
-			t.Errorf("Expected TLD %s not added to config. Instead got %s", tld, tlds)
-		}
+	if result := validate.ValidateKeywords(input); !slices.Equal(result, expected) {
+		t.Errorf("ValidateKeywords(%v) = %v; expected %v", input, result, expected)
 	}
 }
 
@@ -61,10 +42,10 @@ func TestValidateKeywords_InvalidKeywordSkipped(t *testing.T) {
 	// "@invalid" fails IsValidDomainOrKeyword → triggers the continue branch
 	input := []string{"valid", "@invalid", "also-valid"}
 	result := validate.ValidateKeywords(input)
-	if slices.Contains(result.Keywords, "@invalid") {
+	if slices.Contains(result, "@invalid") {
 		t.Error("expected @invalid to be skipped")
 	}
-	if !slices.Contains(result.Keywords, "valid") || !slices.Contains(result.Keywords, "also-valid") {
+	if !slices.Contains(result, "valid") || !slices.Contains(result, "also-valid") {
 		t.Error("expected valid keywords to be present")
 	}
 }

@@ -109,6 +109,16 @@ $ tldx google youtube reddit
   ❌ youtube.com is not available
 ```
 
+Full domains are checked as written. `--tlds` and `--tld-preset` only apply to bare keywords:
+
+```sh
+$ tldx google.dev reddit.app youtube --tlds com,io
+  ❌ google.dev is not available
+  ❌ reddit.app is not available
+  ❌ youtube.com is not available
+  ❌ youtube.io is not available
+```
+
 ### Regex Domain Selection
 
 `--regex` treats each keyword as a pattern and checks every combination it expands to:

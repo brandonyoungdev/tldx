@@ -36,12 +36,7 @@ func (s *ComposerService) Compile(domainsOrKeywords []string) ([]resolver.Domain
 		domainsOrKeywords = expanded
 	}
 
-	validatedKeywords := validate.ValidateKeywords(domainsOrKeywords)
-
-	// Add any new TLDs found in keywords to the config
-	s.app.Config.TLDs = append(s.app.Config.TLDs, validatedKeywords.NewTlds...)
-
-	specs, warnings := s.GenerateDomainPermutations(validatedKeywords.Keywords)
+	specs, warnings := s.GenerateDomainPermutations(validate.ValidateKeywords(domainsOrKeywords))
 
 	if s.app.Config.MaxDomainLength > 0 {
 		filtered := specs[:0]
@@ -99,6 +94,17 @@ func (s *ComposerService) GenerateDomainPermutations(keywords []string) ([]resol
 	seen := make(map[string]bool)
 
 	for _, keyword := range keywords {
+		keywordTlds := tlds
+		if strings.Contains(keyword, ".") {
+			tld, ok := publicsuffix.PublicSuffix(keyword)
+			if !ok {
+				warnings = append(warnings, fmt.Errorf("%v: invalid TLD", tld))
+				continue
+			}
+			keyword = strings.TrimSuffix(keyword, "."+tld)
+			keywordTlds = []string{tld}
+		}
+
 		combos := []combo{{"", ""}}
 
 		for _, prefix := range prefixes {
@@ -113,7 +119,7 @@ func (s *ComposerService) GenerateDomainPermutations(keywords []string) ([]resol
 
 		for _, c := range combos {
 			base := c.prefix + keyword + c.suffix
-			for _, tld := range tlds {
+			for _, tld := range keywordTlds {
 				domain := fmt.Sprintf("%s.%s", base, tld)
 				if seen[domain] {
 					continue

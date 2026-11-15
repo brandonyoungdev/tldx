@@ -130,6 +130,91 @@ func TestGenerateDomainPermutations_MetadataFields(t *testing.T) {
 	assert.Equal(t, "io", byDomain["getstripely.io"].TLD)
 }
 
+func TestCompile_FullDomains(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		tlds     []string
+		preset   string
+		prefixes []string
+		expected []string
+	}{
+		{
+			name:     "each domain keeps its own TLD",
+			input:    []string{"google.com", "facebook.dev", "reddit.app"},
+			expected: []string{"google.com", "facebook.dev", "reddit.app"},
+		},
+		{
+			name:     "same name on several TLDs",
+			input:    []string{"google.com", "google.dev"},
+			expected: []string{"google.com", "google.dev"},
+		},
+		{
+			name:     "multi-label public suffix",
+			input:    []string{"google.co.uk"},
+			expected: []string{"google.co.uk"},
+		},
+		{
+			name:     "TLD of a domain is not applied to bare keywords",
+			input:    []string{"google.io", "reddit"},
+			expected: []string{"google.io", "reddit.com"},
+		},
+		{
+			name:     "configured TLDs apply only to bare keywords",
+			input:    []string{"google.io", "reddit"},
+			tlds:     []string{"com", "ai"},
+			expected: []string{"google.io", "reddit.com", "reddit.ai"},
+		},
+		{
+			name:     "preset applies only to bare keywords",
+			input:    []string{"google.net", "reddit"},
+			tlds:     []string{"com"},
+			preset:   "doesnotexist",
+			expected: []string{"google.net", "reddit.com"},
+		},
+		{
+			name:     "prefixes still apply to full domains",
+			input:    []string{"google.dev"},
+			prefixes: []string{"get"},
+			expected: []string{"google.dev", "getgoogle.dev"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			app := config.NewTldxContext()
+			app.Config.TLDs = test.tlds
+			app.Config.TLDPreset = test.preset
+			app.Config.Prefixes = test.prefixes
+			specs, _ := composer.NewComposerService(app).Compile(test.input)
+			assert.ElementsMatch(t, test.expected, specDomains(specs))
+		})
+	}
+}
+
+func TestCompile_FullDomain_Metadata(t *testing.T) {
+	app := config.NewTldxContext()
+	specs, warnings := composer.NewComposerService(app).Compile([]string{"Google.Co.UK"})
+	assert.Empty(t, warnings)
+	assert.Equal(t, []resolver.DomainSpec{{Domain: "google.co.uk", Keyword: "google", TLD: "co.uk"}}, specs)
+}
+
+func TestCompile_FullDomain_InvalidTLD(t *testing.T) {
+	app := config.NewTldxContext()
+	specs, warnings := composer.NewComposerService(app).Compile([]string{"google.notatld", "reddit"})
+	assert.Len(t, warnings, 1)
+	assert.Equal(t, []string{"reddit.com"}, specDomains(specs))
+}
+
+func TestCompile_RegexMode_FullDomains(t *testing.T) {
+	app := config.NewTldxContext()
+	app.Config.Regex = true
+	app.Config.TLDs = []string{"com"}
+	specs, warnings := composer.NewComposerService(app).Compile([]string{"[ab]x.io"})
+	assert.Empty(t, warnings)
+	assert.ElementsMatch(t, []string{"ax.io", "bx.io"}, specDomains(specs))
+}
+
 func TestCompile_MaxDomainLength(t *testing.T) {
 	app := config.NewTldxContext()
 	app.Config.MaxDomainLength = 10 // e.g. "ab.com" = 6, "abcdefgh.com" = 12
