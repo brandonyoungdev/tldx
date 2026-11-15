@@ -1,3 +1,11 @@
+## [1.6.1](https://github.com/brandonyoungdev/tldx/compare/v1.6.0...v1.6.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* directly specified domains being permuted alongside unspecified tlds ([#166](https://github.com/brandonyoungdev/tldx/issues/166)) ([dd5b251](https://github.com/brandonyoungdev/tldx/commit/dd5b2516b2b68360e8b9c2266320751bb577a60c))
+* **resolver:** don't treat any error containing "404" as a 404 response ([#163](https://github.com/brandonyoungdev/tldx/issues/163)) ([15a0516](https://github.com/brandonyoungdev/tldx/commit/15a05165b74f5242b7872ee7628eb14b99cab8bc)), closes [#162](https://github.com/brandonyoungdev/tldx/issues/162)
+
 # [1.6.0](https://github.com/brandonyoungdev/tldx/compare/v1.5.0...v1.6.0) (2026-08-13)
 
 
